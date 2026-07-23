@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文燈 · 官方首頁</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Noto Serif SC", "Georgia", "Times New Roman", serif;
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #e0e8ff;
+            background: #0a0e1a;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: background-image 1.5s ease;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+            transition: opacity 1.5s ease;
+        }
+
+        /* 淺色模式背景覆層 – 淺藍水晶 */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at 30% 40%, rgba(180, 215, 240, 0.30) 0%, rgba(210, 230, 248, 0.15) 100%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* 深色模式背景覆層 – 深藍水晶 */
+        body.dark-mode::after {
+            background: radial-gradient(ellipse at 30% 40%, rgba(10, 25, 55, 0.60) 0%, rgba(0, 5, 20, 0.85) 100%);
+        }
+
+        /* 主容器 – 邊框使用米黃羊皮紙色 */
+        .main-container {
+            max-width: 920px;
+            width: 100%;
+            background: rgba(15, 25, 50, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 32px 32px 28px 28px;
+            padding: 44px 48px 36px;
+            position: relative;
+            transition: background 0.5s ease, box-shadow 0.5s ease;
+            border: 2px solid #f5efe8;
+            box-shadow:
+                0 12px 48px rgba(0, 0, 30, 0.5),
+                0 0 0 2px rgba(245, 239, 232, 0.10) inset,
+                0 0 0 4px rgba(245, 239, 232, 0.04) inset;
+        }
+
+        .main-container::before {
+            content: "❧";
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 28px;
+            color: rgba(245, 239, 232, 0.30);
+            background: rgba(15, 25, 50, 0.55);
+            backdrop-filter: blur(8px);
+            padding: 0 18px;
+            border-radius: 30px;
+            border: 1px solid rgba(245, 239, 232, 0.20);
+            box-shadow: 0 0 20px rgba(60, 140, 255, 0.04);
+        }
+
+        .main-container::after {
+            content: "";
+            position: absolute;
+            top: 8px;
+            left: 30px;
+            right: 30px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(245, 239, 232, 0.15), rgba(245, 239, 232, 0.15), transparent);
+            border-radius: 2px;
+        }
+
+        /* 深色模式下主容器邊框保持米黃，背景微調 */
+        body.dark-mode .main-container {
+            background: rgba(5, 10, 30, 0.65);
+            border-color: #f5efe8;
+            box-shadow:
+                0 12px 48px rgba(0, 0, 10, 0.6),
+                0 0 0 2px rgba(245, 239, 232, 0.08) inset,
+                0 0 0 4px rgba(245, 239, 232, 0.03) inset;
+        }
+        body.dark-mode .main-container::before {
+            background: rgba(5, 10, 30, 0.65);
+            color: rgba(245, 239, 232, 0.25);
+            border-color: rgba(245, 239, 232, 0.15);
+        }
+        body.dark-mode .main-container::after {
+            background: linear-gradient(90deg, transparent, rgba(245, 239, 232, 0.10), rgba(245, 239, 232, 0.10), transparent);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px 8px;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand .logo {
+            font-size: 42px;
+            line-height: 1;
+            filter: drop-shadow(0 2px 12px rgba(60, 140, 255, 0.25));
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .brand .title {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, #c8ddf0, #8ab8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(74, 140, 255, 0.10);
+        }
+        .brand .title .sub {
+            font-size: 14px;
+            font-weight: 400;
+            -webkit-text-fill-color: rgba(180, 200, 230, 0.40);
+            background: none;
+            letter-spacing: 2px;
+            margin-left: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-shrink: 0;
+            padding-top: 4px;
+        }
+
+        .header-actions button {
+            background: rgba(20, 40, 80, 0.30);
+            border: 1px solid rgba(245, 239, 232, 0.20);
+            border-radius: 30px;
+            padding: 6px 16px;
+            font-size: 14px;
+            color: #c0d8f0;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(4px);
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .header-actions button:hover {
+            background: rgba(30, 60, 120, 0.40);
+            border-color: rgba(245, 239, 232, 0.40);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(60, 140, 255, 0.08);
+            color: #e8f0ff;
+        }
+
+        body.dark-mode .header-actions button {
+            background: rgba(10, 20, 50, 0.40);
+            border-color: rgba(245, 239, 232, 0.15);
+            color: #a0b8e0;
+        }
+        body.dark-mode .header-actions button:hover {
+            background: rgba(20, 40, 80, 0.50);
+            border-color: rgba(245, 239, 232, 0.30);
+            color: #c8d8f0;
+        }
+
+        .greeting-section {
+            margin: 8px 0 18px;
+            padding-bottom: 12px;
+            border-bottom: 2px dotted rgba(245, 239, 232, 0.15);
+            position: relative;
+            z-index: 1;
+        }
+
+        body.dark-mode .greeting-section {
+            border-bottom-color: rgba(245, 239, 232, 0.10);
+        }
+
+        .greeting-section .quote {
+            font-size: 16px;
+            font-style: italic;
+            color: #c8d8f0;
+            letter-spacing: 0.5px;
+            line-height: 1.8;
+            text-shadow: 0 1px 4px rgba(0, 0, 10, 0.3);
+        }
+        .greeting-section .quote .highlight {
+            color: #8ab8ff;
+            font-weight: 500;
+        }
+
+        body.dark-mode .greeting-section .quote {
+            color: #b0c8e8;
+        }
+        body.dark-mode .greeting-section .quote .highlight {
+            color: #6aa5ff;
+        }
+
+        .greeting-section .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            font-size: 13px;
+            color: rgba(180, 200, 230, 0.40);
+            flex-wrap: wrap;
+            gap: 4px 12px;
+        }
+        body.dark-mode .greeting-section .meta {
+            color: rgba(120, 160, 210, 0.30);
+        }
+        .greeting-section .meta .time-display {
+            font-feature-settings: "tnum";
+            letter-spacing: 1px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 28px;
+            position: relative;
+            z-index: 1;
+            margin: 6px 0 10px;
+        }
+
+        @media (min-width: 680px) {
+            .content-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .content-grid .full-width {
+                grid-column: 1 / -1;
+            }
+        }
+
+        .card {
+            background: rgba(10, 25, 50, 0.35);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 20px;
+            padding: 22px 26px 24px;
+            border: 1px solid rgba(245, 239, 232, 0.25);
+            box-shadow: 0 2px 12px rgba(0, 0, 20, 0.10);
+            transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+            position: relative;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            border: 1px solid rgba(245, 239, 232, 0.08);
+            border-radius: 16px;
+            pointer-events: none;
+        }
+
+        body.dark-mode .card {
+            background: rgba(5, 15, 35, 0.45);
+            border-color: rgba(245, 239, 232, 0.20);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.20);
+        }
+        body.dark-mode .card::before {
+            border-color: rgba(245, 239, 232, 0.06);
+        }
+
+        .card .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            color: #c8ddf0;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(245, 239, 232, 0.12);
+            padding-bottom: 8px;
+        }
+        body.dark-mode .card .card-title {
+            color: #b0c8e8;
+            border-bottom-color: rgba(245, 239, 232, 0.08);
+        }
+
+        .card p, .card li {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #c8d8f0;
+        }
+        body.dark-mode .card p, body.dark-mode .card li {
+            color: #b0c0d8;
+        }
+
+        .card ul {
+            list-style: none;
+            padding: 0;
+        }
+        .card ul li {
+            padding: 4px 0 4px 24px;
+            position: relative;
+        }
+        .card ul li::before {
+            content: "❧";
+            position: absolute;
+            left: 2px;
+            top: 4px;
+            color: rgba(245, 239, 232, 0.35);
+            font-size: 14px;
+        }
+        body.dark-mode .card ul li::before {
+            color: rgba(245, 239, 232, 0.25);
+        }
+
+        .card .highlight-box {
+            background: rgba(20, 50, 100, 0.10);
+            border-left: 3px solid #8ab8ff;
+            padding: 12px 18px;
+            border-radius: 0 8px 8px 0;
+            margin: 10px 0 4px;
+            font-style: italic;
+            color: #b8d0f0;
+        }
+        body.dark-mode .card .highlight-box {
+            background: rgba(10, 30, 70, 0.12);
+            border-left-color: #6aa5ff;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #4a8cff, #2a6adf);
+            color: #f0f6ff;
+            padding: 10px 28px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 12px rgba(74, 140, 255, 0.20);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-top: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .download-btn:hover {
+            background: linear-gradient(135deg, #5a9aff, #3a7aff);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(74, 140, 255, 0.25);
+        }
+        body.dark-mode .download-btn {
+            background: linear-gradient(135deg, #3a7aff, #1a5adf);
+        }
+        body.dark-mode .download-btn:hover {
+            background: linear-gradient(135deg, #4a8cff, #2a6adf);
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(20, 50, 100, 0.15);
+            padding: 2px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            color: rgba(180, 200, 230, 0.50);
+            letter-spacing: 1px;
+            border: 1px solid rgba(245, 239, 232, 0.15);
+        }
+        body.dark-mode .badge {
+            color: rgba(120, 160, 210, 0.40);
+            border-color: rgba(245, 239, 232, 0.12);
+        }
+
+        .footer {
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 2px dotted rgba(245, 239, 232, 0.12);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 13px;
+            color: rgba(180, 200, 230, 0.35);
+            position: relative;
+            z-index: 1;
+        }
+        body.dark-mode .footer {
+            border-top-color: rgba(245, 239, 232, 0.08);
+            color: rgba(120, 160, 210, 0.25);
+        }
+
+        .footer .footer-links {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+        }
+        .footer .footer-links a {
+            color: rgba(180, 200, 230, 0.45);
+            text-decoration: none;
+            transition: color 0.2s;
+            border-bottom: 1px dotted rgba(245, 239, 232, 0.25);
+        }
+        .footer .footer-links a:hover {
+            color: #8ab8ff;
+            border-bottom-color: #4a8cff;
+        }
+        body.dark-mode .footer .footer-links a {
+            color: rgba(120, 160, 210, 0.35);
+            border-bottom-color: rgba(245, 239, 232, 0.15);
+        }
+        body.dark-mode .footer .footer-links a:hover {
+            color: #6aa5ff;
+            border-bottom-color: #3a7aff;
+        }
+
+        .footer .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: rgba(180, 200, 230, 0.35);
+            transition: transform 0.3s ease, color 0.3s ease;
+            padding: 2px 6px;
+        }
+        .footer .theme-toggle:hover {
+            transform: rotate(20deg);
+            color: #8ab8ff;
+        }
+        body.dark-mode .footer .theme-toggle {
+            color: rgba(120, 160, 210, 0.25);
+        }
+        body.dark-mode .footer .theme-toggle:hover {
+            color: #6aa5ff;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .toast {
+            background: rgba(10, 25, 50, 0.75);
+            backdrop-filter: blur(12px);
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-size: 14px;
+            color: #c8d8f0;
+            border: 1px solid rgba(245, 239, 232, 0.15);
+            box-shadow: 0 4px 20px rgba(0, 0, 20, 0.30);
+            animation: slideUp 0.35s ease;
+            pointer-events: auto;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        body.dark-mode .toast {
+            background: rgba(5, 10, 30, 0.80);
+            color: #b0c8e8;
+            border-color: rgba(245, 239, 232, 0.10);
+        }
+        .toast.success { border-left: 4px solid #44cc88; }
+        .toast.info { border-left: 4px solid #4a8cff; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 16px 12px; }
+            .main-container { padding: 28px 18px 24px; border-radius: 24px; }
+            .main-container::before { font-size: 22px; padding: 0 12px; top: -12px; }
+            .main-container::after { left: 16px; right: 16px; }
+            .brand .title { font-size: 22px; letter-spacing: 2px; }
+            .brand .logo { font-size: 34px; }
+            .brand .title .sub { font-size: 12px; }
+            .header { flex-direction: column; align-items: stretch; gap: 8px; }
+            .header-actions { justify-content: flex-end; }
+            .header-actions button { font-size: 13px; padding: 4px 14px; }
+            .card { padding: 16px 18px 18px; }
+            .card .card-title { font-size: 16px; }
+            .card p, .card li { font-size: 14px; }
+            .greeting-section .quote { font-size: 14px; }
+            .download-btn { font-size: 14px; padding: 8px 20px; }
+            .footer { flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+            .footer .footer-links { flex-wrap: wrap; justify-content: center; gap: 12px; }
+        }
+
+        @media (max-width: 420px) {
+            .main-container { padding: 20px 12px 18px; }
+            .brand .title { font-size: 18px; }
+            .brand .logo { font-size: 28px; }
+            .card .card-title { font-size: 14px; }
+            .card p, .card li { font-size: 13px; }
+            .greeting-section .quote { font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+
+        <div class="header">
+            <div class="brand">
+                <span class="logo">🪔</span>
+                <span class="title">文燈<span class="sub">· 官方</span></span>
+            </div>
+            <div class="header-actions">
+                <button onclick="window.open('https://d0507.wordpress.com/','_blank')">📰 部落格</button>
+                <button onclick="window.open('https://d0507.wordpress.com/about/','_blank')">📜 關於</button>
+                <button onclick="toggleTheme()" id="headerThemeBtn">🌙</button>
+            </div>
+        </div>
+
+        <div class="greeting-section">
+            <div class="quote">
+                “ <span class="highlight">文燈</span>，一名夢想成為達芬奇式學者的中國學生。
+                愛黨愛國愛人民，熱愛自然，熱衷環境保護。
+                牢記「自力更生」，努力擺脫對外部勢力的依賴。
+                更喜歡開源且本地優先的軟體。”
+            </div>
+            <div class="meta">
+                <span>🕊️ 採集 · 保存 · 研究</span>
+                <span class="time-display" id="timeDisplay">——</span>
+            </div>
+        </div>
+
+        <div class="content-grid">
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="title-icon">🌐</span> 文燈瀏覽器經典版 2
+                </div>
+                <p>
+                    嗚哈哈哈哈哈！這就是瘋狂毛貓燈的 <strong>文燈瀏覽器經典版 2</strong>！！！
+                    有沒有驚艷到？現代窗口套經典窗口，風雨無阻保護經典 UI！
+                    雙指縮放變內窗大小，極少儲存流暢我最棒！
+                </p>
+                <div class="highlight-box">
+                    “ Modern window covers for classic windows, protecting the classic UI from wind and rain! Zoom with two fingers to change the inner window size, minimal storage, smooth performance, I’m the best! ”
+                </div>
+                <div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <a class="download-btn" href="https://pan.baidu.com/s/1Mx1KqD57Trs7oY-9J6A2jw?pwd=pcy2" target="_blank">
+                        ⬇️ 立即下載（免安裝）
+                    </a>
+                    <span class="badge">🔑 pcy2</span>
+                </div>
+                <p style="margin-top: 12px; font-size: 13px; color: rgba(180, 200, 230, 0.35);">
+                    💡 喜歡嗎？歡迎在下方打分喵～
+                </p>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="title-icon">🪔</span> 關於文燈
+                </div>
+                <ul>
+                    <li>夢想成為達芬奇式學者的中國學生</li>
+                    <li>愛黨愛國愛人民的新時代青年</li>
+                    <li>熱愛自然，熱衷環境保護</li>
+                    <li>牢記毛澤東「自力更生」的教導</li>
+                    <li>更喜歡開源且本地優先的軟體</li>
+                    <li>有一個 <strong>神秘計劃</strong>（保密㊙️）</li>
+                </ul>
+                <div style="margin-top: 12px; padding: 10px 14px; background: rgba(20, 50, 100, 0.06); border-radius: 12px; border: 1px solid rgba(245, 239, 232, 0.08);">
+                    <p style="font-size: 14px; margin: 0; color: #b0c8e8;">
+                        🔍 <em>「文燈進行採集，保存文化與科學技術。對世界上的神奇事件進行研究，並且已經獲得一些結果。」</em>
+                    </p>
+                </div>
+            </div>
+
+            <div class="card full-width" style="grid-column: 1 / -1;">
+                <div class="card-title">
+                    <span class="title-icon">📜</span> 探索更多
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 16px 28px; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px 24px;">
+                        <a href="https://d0507.wordpress.com/" target="_blank" style="color: #8ab8ff; text-decoration: none; border-bottom: 1px dotted rgba(245, 239, 232, 0.25);">📰 文燈部落格</a>
+                        <a href="https://d0507.wordpress.com/about/" target="_blank" style="color: #8ab8ff; text-decoration: none; border-bottom: 1px dotted rgba(245, 239, 232, 0.25);">📜 關於頁面</a>
+                        <a href="https://d0507.wordpress.com/2026/05/03/%e6%96%87%e7%87%88%e6%b5%8f%e8%a7%88%e5%99%a8%e7%bb%8f%e5%85%b8%e7%89%882-wendeng-browser-classic-2/" target="_blank" style="color: #8ab8ff; text-decoration: none; border-bottom: 1px dotted rgba(245, 239, 232, 0.25);">📦 瀏覽器頁面</a>
+                    </div>
+                    <span style="font-size: 13px; color: rgba(180, 200, 230, 0.25);">🪔 文燈 · 深藍水晶</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <div class="footer-links">
+                <span>© 2026 文燈</span>
+                <a href="https://d0507.wordpress.com/" target="_blank">WordPress</a>
+                <a href="#" onclick="showToast('info','🪔 文燈官方首頁 · 深藍水晶主題')">關於本站</a>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 13px;">✨ 古典 · 現代</span>
+                <button class="theme-toggle" onclick="toggleTheme()" id="footerThemeBtn" title="切換主題">🌙</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        function getDailyWallpaper() {
+            const now = new Date();
+            const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+            const images = [
+                'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80',
+                'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1920&q=80',
+                'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80',
+                'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80',
+                'https://images.unsplash.com/photo-1518173946687-a36f968f7f6a?w=1920&q=80',
+                'https://images.unsplash.com/photo-1505144808419-1957a94ca61e?w=1920&q=80',
+                'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80'
+            ];
+            return images[seed % images.length];
+        }
+
+        function setWallpaper() {
+            document.body.style.backgroundImage = 'url("' + getDailyWallpaper() + '")';
+        }
+
+        const State = {
+            darkMode: localStorage.getItem('wdTheme') === 'dark'
+        };
+
+        function applyTheme() {
+            document.body.classList.toggle('dark-mode', State.darkMode);
+            const icon = State.darkMode ? '☀️' : '🌙';
+            const hBtn = document.getElementById('headerThemeBtn');
+            const fBtn = document.getElementById('footerThemeBtn');
+            if (hBtn) hBtn.textContent = icon;
+            if (fBtn) fBtn.textContent = icon;
+            localStorage.setItem('wdTheme', State.darkMode ? 'dark' : 'light');
+        }
+
+        function toggleTheme() {
+            State.darkMode = !State.darkMode;
+            applyTheme();
+            showToast('info', State.darkMode ? '🌙 深色模式' : '☀️ 淺色模式');
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            const el = document.getElementById('timeDisplay');
+            if (el) el.textContent = h + ':' + m + ':' + s;
+        }
+
+        function showToast(type, msg, duration) {
+            duration = duration || 2600;
+            const container = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = 'toast ' + type;
+            t.textContent = msg;
+            container.appendChild(t);
+            setTimeout(() => {
+                t.style.opacity = '0';
+                t.style.transform = 'translateY(10px)';
+                setTimeout(() => { if (t.parentNode) t.remove(); }, 400);
+            }, duration);
+        }
+
+        setWallpaper();
+        applyTheme();
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        const now = new Date();
+        const msToMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0) - now;
+        setTimeout(() => { setWallpaper(); }, msToMidnight + 1000);
+
+        setTimeout(() => {
+            showToast('info', '🪔 文燈官方首頁 · 深藍水晶', 2200);
+        }, 400);
+    </script>
+
+</body>
+</html>
