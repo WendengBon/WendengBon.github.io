@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文燈 · 浮光 · 書齋</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0c0a0e;
+            font-family: "Georgia", "Songti SC", "Noto Serif SC", serif;
+            user-select: none;
+            overflow: hidden;
+            transition: background 1.8s ease;
+        }
+
+        body.lit {
+            background: #d9c8a8;
+        }
+
+        .ambient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background:
+                radial-gradient(ellipse at 50% 60%, rgba(60, 40, 20, 0.35) 0%, transparent 70%),
+                radial-gradient(ellipse at 30% 20%, rgba(40, 30, 20, 0.20) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(30, 25, 20, 0.15) 0%, transparent 50%),
+                #0c0a0e;
+            animation: ambientShift 16s ease-in-out infinite alternate;
+            transition: background 1.8s ease;
+        }
+
+        body.lit .ambient {
+            background:
+                radial-gradient(ellipse at 50% 60%, rgba(200, 170, 120, 0.25) 0%, transparent 70%),
+                radial-gradient(ellipse at 30% 20%, rgba(180, 150, 100, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(160, 130, 80, 0.10) 0%, transparent 50%),
+                #d9c8a8;
+        }
+
+        @keyframes ambientShift {
+            0% {
+                background-position: 0% 0%;
+            }
+            100% {
+                background-position: 100% 100%;
+            }
+        }
+
+        .container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 2.5rem 2.2rem;
+            border-radius: 4rem 4rem 2.8rem 2.8rem;
+            background: radial-gradient(ellipse at 50% 80%, rgba(180, 120, 70, 0.08) 0%, transparent 70%);
+            box-shadow: 0 0 80px rgba(200, 150, 80, 0.06);
+            transition: all 0.4s ease;
+            max-width: 520px;
+            width: 100%;
+        }
+
+        .lamp-wrapper {
+            position: relative;
+            font-size: 7rem;
+            line-height: 1;
+            animation: floatLamp 4.2s ease-in-out infinite;
+            filter: drop-shadow(0 8px 30px rgba(255, 180, 60, 0.20));
+            transform-origin: center bottom;
+            will-change: transform;
+            transition: filter 0.4s ease;
+            margin-bottom: 0.2rem;
+        }
+
+        .lamp-wrapper:hover {
+            filter: drop-shadow(0 12px 50px rgba(255, 190, 70, 0.35));
+        }
+
+        .lamp-emoji {
+            display: block;
+            position: relative;
+            z-index: 2;
+            transition: transform 0.3s ease;
+        }
+
+        .lamp-wrapper:hover .lamp-emoji {
+            transform: scale(1.02) rotate(-2deg);
+        }
+
+        .glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200%;
+            height: 200%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle at 50% 45%, rgba(255, 200, 120, 0.20) 0%, rgba(255, 160, 60, 0.06) 40%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
+            animation: pulseGlow 4.2s ease-in-out infinite;
+            mix-blend-mode: screen;
+        }
+
+        @keyframes floatLamp {
+            0% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            40% {
+                transform: translateY(-18px) rotate(1.5deg);
+            }
+            70% {
+                transform: translateY(-6px) rotate(-1deg);
+            }
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                opacity: 0.5;
+                transform: translate(-50%, -50%) scale(0.92);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.18);
+            }
+            100% {
+                opacity: 0.5;
+                transform: translate(-50%, -50%) scale(0.92);
+            }
+        }
+
+        .flicker {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 34px;
+            background: radial-gradient(ellipse at 50% 100%, rgba(255, 200, 100, 0.18) 0%, transparent 70%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            filter: blur(10px);
+            z-index: 1;
+            pointer-events: none;
+            animation: flickerAnim 2.6s ease-in-out infinite alternate;
+            opacity: 0.4;
+        }
+
+        @keyframes flickerAnim {
+            0% {
+                transform: translateX(-50%) scale(1) rotate(0deg);
+                opacity: 0.25;
+            }
+            50% {
+                transform: translateX(-44%) scale(1.25) rotate(10deg);
+                opacity: 0.65;
+            }
+            100% {
+                transform: translateX(-56%) scale(0.88) rotate(-8deg);
+                opacity: 0.35;
+            }
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: #e8d5b0;
+            text-shadow: 0 0 30px rgba(255, 180, 80, 0.12), 0 0 60px rgba(255, 160, 60, 0.05);
+            letter-spacing: 0.35em;
+            margin-top: -0.2rem;
+            margin-bottom: 1.2rem;
+            font-family: "Georgia", "Songti SC", "Noto Serif SC", serif;
+            border-top: 1px solid rgba(200, 160, 100, 0.12);
+            border-bottom: 1px solid rgba(200, 160, 100, 0.08);
+            padding: 0.3rem 1.8rem;
+            background: radial-gradient(ellipse at center, rgba(200, 160, 100, 0.04) 0%, transparent 80%);
+            backdrop-filter: blur(2px);
+            transition: color 0.6s ease, text-shadow 0.6s ease;
+        }
+
+        body.lit .title {
+            color: #4a3a2a;
+            text-shadow: 0 0 20px rgba(120, 80, 40, 0.10);
+            border-color: rgba(120, 80, 40, 0.15);
+            background: radial-gradient(ellipse at center, rgba(160, 120, 70, 0.06) 0%, transparent 80%);
+        }
+
+        .title::before {
+            content: "❧";
+            margin-right: 0.6rem;
+            opacity: 0.35;
+            color: #c9a87c;
+            font-size: 1.2rem;
+        }
+
+        .title::after {
+            content: "❧";
+            margin-left: 0.6rem;
+            opacity: 0.35;
+            color: #c9a87c;
+            font-size: 1.2rem;
+        }
+
+        body.lit .title::before,
+        body.lit .title::after {
+            color: #7a5a3a;
+        }
+
+        .card {
+            width: 100%;
+            background: rgba(30, 25, 20, 0.55);
+            backdrop-filter: blur(8px);
+            border-radius: 2.2rem;
+            padding: 1.6rem 1.8rem 1.8rem;
+            border: 1px solid rgba(200, 160, 100, 0.12);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(200, 160, 100, 0.06);
+            transition: all 0.6s ease;
+            position: relative;
+        }
+
+        body.lit .card {
+            background: rgba(220, 200, 170, 0.65);
+            backdrop-filter: blur(6px);
+            border-color: rgba(160, 120, 70, 0.25);
+            box-shadow: 0 8px 40px rgba(60, 40, 20, 0.15), inset 0 1px 0 rgba(220, 190, 140, 0.3);
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            top: -1px;
+            left: 20%;
+            right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(200, 160, 100, 0.25), transparent);
+            transition: all 0.6s ease;
+        }
+
+        body.lit .card::before {
+            background: linear-gradient(90deg, transparent, rgba(160, 120, 70, 0.3), transparent);
+        }
+
+        .clock-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid rgba(200, 160, 100, 0.08);
+            margin-bottom: 0.8rem;
+        }
+
+        body.lit .clock-row {
+            border-bottom-color: rgba(120, 80, 40, 0.12);
+        }
+
+        .clock-label {
+            font-size: 0.8rem;
+            color: #a08a70;
+            letter-spacing: 0.15em;
+            font-weight: 400;
+        }
+
+        body.lit .clock-label {
+            color: #6a5a4a;
+        }
+
+        .clock-time {
+            font-size: 1.3rem;
+            color: #e8d5b0;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            font-variant-numeric: tabular-nums;
+            font-family: "Georgia", "Courier New", monospace;
+        }
+
+        body.lit .clock-time {
+            color: #3a2a1a;
+        }
+
+        .timer-display {
+            text-align: center;
+            padding: 1.2rem 0 0.8rem;
+            font-size: 4rem;
+            font-weight: 400;
+            color: #f0e0c8;
+            letter-spacing: 0.1em;
+            font-variant-numeric: tabular-nums;
+            font-family: "Georgia", "Courier New", monospace;
+            text-shadow: 0 0 30px rgba(255, 180, 80, 0.06);
+            transition: all 0.4s ease;
+            line-height: 1.2;
+        }
+
+        body.lit .timer-display {
+            color: #2a1a0a;
+            text-shadow: 0 0 20px rgba(120, 80, 40, 0.06);
+        }
+
+        .timer-mode {
+            display: flex;
+            justify-content: center;
+            gap: 1.2rem;
+            margin: 0.2rem 0 0.8rem;
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            color: #8a7a6a;
+            font-size: 0.9rem;
+            font-family: "Georgia", "Songti SC", serif;
+            padding: 0.3rem 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 2rem;
+            letter-spacing: 0.1em;
+            position: relative;
+        }
+
+        .mode-btn:hover {
+            color: #d0c0a8;
+        }
+
+        .mode-btn.active {
+            color: #e8d5b0;
+            background: rgba(200, 160, 100, 0.10);
+        }
+
+        .mode-btn.active::after {
+            content: "";
+            position: absolute;
+            bottom: -2px;
+            left: 30%;
+            right: 30%;
+            height: 1px;
+            background: rgba(200, 160, 100, 0.30);
+        }
+
+        body.lit .mode-btn {
+            color: #7a6a5a;
+        }
+
+        body.lit .mode-btn:hover {
+            color: #3a2a1a;
+        }
+
+        body.lit .mode-btn.active {
+            color: #2a1a0a;
+            background: rgba(120, 80, 40, 0.08);
+        }
+
+        body.lit .mode-btn.active::after {
+            background: rgba(120, 80, 40, 0.25);
+        }
+
+        .preset-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin: 0.4rem 0 0.8rem;
+        }
+
+        .preset-wrapper.hidden {
+            display: none;
+        }
+
+        .presets {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            min-height: 2.2rem;
+        }
+
+        .preset-btn {
+            background: rgba(200, 160, 100, 0.06);
+            border: 1px solid rgba(200, 160, 100, 0.10);
+            color: #b0a090;
+            font-size: 0.75rem;
+            font-family: "Georgia", "Songti SC", serif;
+            padding: 0.2rem 1rem;
+            border-radius: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.06em;
+        }
+
+        .preset-btn:hover {
+            background: rgba(200, 160, 100, 0.12);
+            color: #e0d0b8;
+            border-color: rgba(200, 160, 100, 0.20);
+        }
+
+        .preset-btn.active {
+            background: rgba(200, 160, 100, 0.15);
+            color: #e8d5b0;
+            border-color: rgba(200, 160, 100, 0.25);
+        }
+
+        body.lit .preset-btn {
+            background: rgba(120, 80, 40, 0.06);
+            border-color: rgba(120, 80, 40, 0.10);
+            color: #6a5a4a;
+        }
+
+        body.lit .preset-btn:hover {
+            background: rgba(120, 80, 40, 0.10);
+            color: #2a1a0a;
+            border-color: rgba(120, 80, 40, 0.18);
+        }
+
+        body.lit .preset-btn.active {
+            background: rgba(120, 80, 40, 0.12);
+            color: #1a0a00;
+            border-color: rgba(120, 80, 40, 0.20);
+        }
+
+        .custom-preset {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            color: #b0a090;
+            font-family: "Georgia", "Songti SC", serif;
+        }
+
+        body.lit .custom-preset {
+            color: #6a5a4a;
+        }
+
+        .custom-preset input {
+            width: 3.4rem;
+            background: rgba(200, 160, 100, 0.06);
+            border: 1px solid rgba(200, 160, 100, 0.12);
+            border-radius: 1.2rem;
+            padding: 0.15rem 0.3rem;
+            text-align: center;
+            color: #e8d5b0;
+            font-family: "Georgia", "Courier New", monospace;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        body.lit .custom-preset input {
+            background: rgba(120, 80, 40, 0.06);
+            border-color: rgba(120, 80, 40, 0.12);
+            color: #2a1a0a;
+        }
+
+        .custom-preset input:focus {
+            border-color: rgba(200, 160, 100, 0.30);
+            background: rgba(200, 160, 100, 0.08);
+        }
+
+        body.lit .custom-preset input:focus {
+            border-color: rgba(120, 80, 40, 0.25);
+            background: rgba(120, 80, 40, 0.06);
+        }
+
+        .custom-preset button {
+            background: rgba(200, 160, 100, 0.06);
+            border: 1px solid rgba(200, 160, 100, 0.10);
+            color: #b0a090;
+            font-size: 0.7rem;
+            font-family: "Georgia", "Songti SC", serif;
+            padding: 0.1rem 0.8rem;
+            border-radius: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.04em;
+        }
+
+        .custom-preset button:hover {
+            background: rgba(200, 160, 100, 0.12);
+            color: #e0d0b8;
+            border-color: rgba(200, 160, 100, 0.20);
+        }
+
+        body.lit .custom-preset button {
+            background: rgba(120, 80, 40, 0.06);
+            border-color: rgba(120, 80, 40, 0.10);
+            color: #6a5a4a;
+        }
+
+        body.lit .custom-preset button:hover {
+            background: rgba(120, 80, 40, 0.10);
+            color: #2a1a0a;
+            border-color: rgba(120, 80, 40, 0.18);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid rgba(200, 160, 100, 0.06);
+        }
+
+        body.lit .controls {
+            border-top-color: rgba(120, 80, 40, 0.08);
+        }
+
+        .ctrl-btn {
+            background: transparent;
+            border: 1px solid rgba(200, 160, 100, 0.12);
+            color: #c0b0a0;
+            font-size: 0.85rem;
+            font-family: "Georgia", "Songti SC", serif;
+            padding: 0.4rem 1.4rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.08em;
+            min-width: 4.2rem;
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(200, 160, 100, 0.08);
+            color: #f0e0c8;
+            border-color: rgba(200, 160, 100, 0.20);
+        }
+
+        .ctrl-btn:active {
+            transform: scale(0.96);
+        }
+
+        .ctrl-btn.primary {
+            background: rgba(200, 160, 100, 0.10);
+            border-color: rgba(200, 160, 100, 0.18);
+            color: #e8d5b0;
+        }
+
+        .ctrl-btn.primary:hover {
+            background: rgba(200, 160, 100, 0.18);
+        }
+
+        .ctrl-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        body.lit .ctrl-btn {
+            border-color: rgba(120, 80, 40, 0.12);
+            color: #5a4a3a;
+        }
+
+        body.lit .ctrl-btn:hover {
+            background: rgba(120, 80, 40, 0.06);
+            color: #1a0a00;
+            border-color: rgba(120, 80, 40, 0.18);
+        }
+
+        body.lit .ctrl-btn.primary {
+            background: rgba(120, 80, 40, 0.08);
+            border-color: rgba(120, 80, 40, 0.15);
+            color: #2a1a0a;
+        }
+
+        body.lit .ctrl-btn.primary:hover {
+            background: rgba(120, 80, 40, 0.14);
+        }
+
+        .particles {
+            position: absolute;
+            bottom: -6%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 1;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .particle {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(255, 200, 120, 0.5);
+            box-shadow: 0 0 12px rgba(255, 180, 80, 0.3);
+            animation: particleDrift 4.6s ease-in-out infinite alternate;
+        }
+
+        .particle:nth-child(1) {
+            animation-delay: 0s;
+            background: rgba(255, 210, 140, 0.6);
+        }
+        .particle:nth-child(2) {
+            animation-delay: 1.4s;
+            background: rgba(255, 190, 100, 0.4);
+            width: 7px;
+            height: 7px;
+        }
+        .particle:nth-child(3) {
+            animation-delay: 2.8s;
+            background: rgba(255, 220, 160, 0.5);
+            width: 4px;
+            height: 4px;
+        }
+        .particle:nth-child(4) {
+            animation-delay: 0.9s;
+            background: rgba(255, 180, 70, 0.4);
+            width: 6px;
+            height: 6px;
+        }
+
+        @keyframes particleDrift {
+            0% {
+                transform: translateY(0px) scale(0.7);
+                opacity: 0.2;
+            }
+            100% {
+                transform: translateY(-20px) scale(1.3);
+                opacity: 0.8;
+            }
+        }
+
+        .line-ornament {
+            margin-top: 1.2rem;
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(200, 160, 100, 0.20), transparent);
+            animation: linePulse 4.8s ease-in-out infinite;
+        }
+
+        body.lit .line-ornament {
+            background: linear-gradient(90deg, transparent, rgba(120, 80, 40, 0.20), transparent);
+        }
+
+        @keyframes linePulse {
+            0%,
+            100% {
+                opacity: 0.3;
+                width: 60px;
+            }
+            50% {
+                opacity: 0.7;
+                width: 90px;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(-120px);
+            background: rgba(30, 25, 20, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(200, 160, 100, 0.20);
+            border-radius: 2rem;
+            padding: 1.2rem 2.4rem;
+            color: #f0e0c8;
+            font-family: "Georgia", "Songti SC", serif;
+            font-size: 1.2rem;
+            letter-spacing: 0.1em;
+            box-shadow: 0 12px 60px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
+            opacity: 0;
+            pointer-events: none;
+            text-align: center;
+            max-width: 90%;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0px);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        body.lit .toast {
+            background: rgba(240, 225, 200, 0.92);
+            border-color: rgba(120, 80, 40, 0.20);
+            color: #2a1a0a;
+            box-shadow: 0 12px 60px rgba(60, 40, 20, 0.2);
+        }
+
+        .toast .toast-msg {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .toast .toast-msg span {
+            font-size: 2.4rem;
+        }
+
+        .toast .toast-btn {
+            background: rgba(200, 160, 100, 0.12);
+            border: 1px solid rgba(200, 160, 100, 0.15);
+            color: #e8d5b0;
+            font-family: "Georgia", "Songti SC", serif;
+            font-size: 0.85rem;
+            padding: 0.3rem 2rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.06em;
+            margin-top: 0.2rem;
+        }
+
+        .toast .toast-btn:hover {
+            background: rgba(200, 160, 100, 0.20);
+            border-color: rgba(200, 160, 100, 0.25);
+        }
+
+        body.lit .toast .toast-btn {
+            background: rgba(120, 80, 40, 0.08);
+            border-color: rgba(120, 80, 40, 0.12);
+            color: #2a1a0a;
+        }
+
+        body.lit .toast .toast-btn:hover {
+            background: rgba(120, 80, 40, 0.14);
+            border-color: rgba(120, 80, 40, 0.18);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1.2rem 1.2rem 1.6rem;
+                border-radius: 3rem 3rem 2rem 2rem;
+            }
+            .lamp-wrapper {
+                font-size: 5rem;
+            }
+            .title {
+                font-size: 1.1rem;
+                padding: 0.2rem 1rem;
+                letter-spacing: 0.25em;
+            }
+            .title::before,
+            .title::after {
+                font-size: 0.9rem;
+                margin: 0 0.3rem;
+            }
+            .card {
+                padding: 1.2rem 1rem 1.4rem;
+                border-radius: 1.8rem;
+            }
+            .timer-display {
+                font-size: 2.8rem;
+                padding: 0.8rem 0 0.4rem;
+            }
+            .clock-time {
+                font-size: 1rem;
+            }
+            .controls {
+                gap: 0.6rem;
+                flex-wrap: wrap;
+            }
+            .ctrl-btn {
+                font-size: 0.75rem;
+                padding: 0.3rem 1rem;
+                min-width: 3.2rem;
+            }
+            .preset-btn {
+                font-size: 0.65rem;
+                padding: 0.15rem 0.7rem;
+            }
+            .mode-btn {
+                font-size: 0.75rem;
+                padding: 0.2rem 0.6rem;
+            }
+            .toast {
+                font-size: 1rem;
+                padding: 1rem 1.6rem;
+                border-radius: 1.6rem;
+            }
+            .toast .toast-msg span {
+                font-size: 1.8rem;
+            }
+            .particles {
+                gap: 0.6rem;
+                bottom: -4%;
+            }
+            .particle {
+                width: 4px;
+                height: 4px;
+            }
+            .particle:nth-child(2) {
+                width: 6px;
+                height: 6px;
+            }
+            .particle:nth-child(4) {
+                width: 5px;
+                height: 5px;
+            }
+            .custom-preset input {
+                width: 2.8rem;
+                font-size: 0.7rem;
+            }
+            .custom-preset button {
+                font-size: 0.6rem;
+                padding: 0.05rem 0.6rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .lamp-wrapper {
+                font-size: 3.8rem;
+            }
+            .title {
+                font-size: 0.9rem;
+                letter-spacing: 0.15em;
+                padding: 0.15rem 0.6rem;
+            }
+            .title::before,
+            .title::after {
+                content: "";
+                margin: 0;
+            }
+            .timer-display {
+                font-size: 2.2rem;
+            }
+            .card {
+                padding: 0.8rem 0.6rem 1rem;
+            }
+            .controls {
+                gap: 0.4rem;
+            }
+            .ctrl-btn {
+                font-size: 0.65rem;
+                padding: 0.2rem 0.6rem;
+                min-width: 2.6rem;
+            }
+            .preset-btn {
+                font-size: 0.55rem;
+                padding: 0.1rem 0.5rem;
+            }
+            .mode-btn {
+                font-size: 0.65rem;
+                padding: 0.15rem 0.4rem;
+            }
+            .container {
+                padding: 0.8rem 0.6rem 1rem;
+                border-radius: 2rem 2rem 1.2rem 1.2rem;
+            }
+            .clock-time {
+                font-size: 0.85rem;
+            }
+            .toast {
+                font-size: 0.85rem;
+                padding: 0.8rem 1.2rem;
+                top: 1rem;
+            }
+            .toast .toast-msg span {
+                font-size: 1.4rem;
+            }
+            .custom-preset input {
+                width: 2.2rem;
+                font-size: 0.6rem;
+            }
+            .custom-preset button {
+                font-size: 0.55rem;
+                padding: 0.05rem 0.4rem;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient"></div>
+
+    <div class="container">
+
+        <div class="lamp-wrapper">
+            <div class="glow"></div>
+            <div class="flicker"></div>
+            <span class="lamp-emoji">🪔</span>
+            <div class="particles">
+                <span class="particle"></span>
+                <span class="particle"></span>
+                <span class="particle"></span>
+                <span class="particle"></span>
+            </div>
+        </div>
+
+        <div class="title">文燈 · 浮光</div>
+
+        <div class="card">
+            <div class="clock-row">
+                <span class="clock-label">⏳ 時辰</span>
+                <span class="clock-time" id="currentTime">00:00:00</span>
+            </div>
+
+            <div class="timer-display" id="timerDisplay">00:00:00</div>
+
+            <div class="timer-mode">
+                <button class="mode-btn active" data-mode="countup" id="modeUp">正計時</button>
+                <button class="mode-btn" data-mode="countdown" id="modeDown">倒計時</button>
+            </div>
+
+            <div class="preset-wrapper" id="presetWrapper">
+                <div class="presets" id="presetContainer">
+                    <button class="preset-btn" data-minutes="5">5m</button>
+                    <button class="preset-btn active" data-minutes="15">15m</button>
+                    <button class="preset-btn" data-minutes="25">25m</button>
+                    <button class="preset-btn" data-minutes="45">45m</button>
+                    <button class="preset-btn" data-minutes="60">60m</button>
+                </div>
+                <div class="custom-preset">
+                    <span>自定</span>
+                    <input type="number" id="customMinutes" min="1" max="999" value="15" />
+                    <span>分</span>
+                    <button id="setCustomBtn">設定</button>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="ctrl-btn primary" id="startBtn">▶ 開始</button>
+                <button class="ctrl-btn" id="pauseBtn" disabled>⏸ 暫停</button>
+                <button class="ctrl-btn" id="resetBtn">⟳ 歸零</button>
+            </div>
+        </div>
+
+        <div class="line-ornament"></div>
+    </div>
+
+    <div class="toast" id="toast">
+        <div class="toast-msg">
+            <span>⏳</span>
+            <div>時辰已到 · 文燈映心</div>
+            <button class="toast-btn" id="toastBtn">歸零 · 復位</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const timerDisplay = document.getElementById('timerDisplay');
+            const currentTimeEl = document.getElementById('currentTime');
+            const startBtn = document.getElementById('startBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const modeUp = document.getElementById('modeUp');
+            const modeDown = document.getElementById('modeDown');
+            const presetContainer = document.getElementById('presetContainer');
+            const presetBtns = presetContainer.querySelectorAll('.preset-btn');
+            const presetWrapper = document.getElementById('presetWrapper');
+            const customMinutes = document.getElementById('customMinutes');
+            const setCustomBtn = document.getElementById('setCustomBtn');
+            const toast = document.getElementById('toast');
+            const toastBtn = document.getElementById('toastBtn');
+            const body = document.body;
+
+            let mode = 'countup';
+            let isRunning = false;
+            let isPaused = false;
+            let timerId = null;
+            let elapsedSeconds = 0;
+            let targetSeconds = 15 * 60;
+            let selectedPreset = 15;
+            let toastActive = false;
+
+            function formatTime(sec) {
+                const h = Math.floor(sec / 3600);
+                const m = Math.floor((sec % 3600) / 60);
+                const s = Math.floor(sec % 60);
+                return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+            }
+
+            function updateClock() {
+                const now = new Date();
+                currentTimeEl.textContent = now.toTimeString().slice(0, 8);
+            }
+
+            function renderTimer() {
+                if (mode === 'countup') {
+                    timerDisplay.textContent = formatTime(elapsedSeconds);
+                } else {
+                    const remaining = Math.max(0, targetSeconds - elapsedSeconds);
+                    timerDisplay.textContent = formatTime(remaining);
+                }
+            }
+
+            function getRemaining() {
+                if (mode === 'countup') return elapsedSeconds;
+                return Math.max(0, targetSeconds - elapsedSeconds);
+            }
+
+            function tick() {
+                if (!isRunning || isPaused) return;
+                elapsedSeconds++;
+                if (mode === 'countdown') {
+                    const remaining = targetSeconds - elapsedSeconds;
+                    if (remaining <= 0) {
+                        elapsedSeconds = targetSeconds;
+                        renderTimer();
+                        stopTimer();
+                        triggerAlert();
+                        return;
+                    }
+                }
+                renderTimer();
+            }
+
+            function startTimer() {
+                if (isRunning && !isPaused) return;
+                if (mode === 'countdown' && elapsedSeconds >= targetSeconds) {
+                    elapsedSeconds = 0;
+                }
+                isRunning = true;
+                isPaused = false;
+                startBtn.textContent = '▶ 運行';
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+                pauseBtn.textContent = '⏸ 暫停';
+                if (timerId) clearInterval(timerId);
+                timerId = setInterval(tick, 1000);
+                updateClock();
+                renderTimer();
+            }
+
+            function pauseTimer() {
+                if (!isRunning || isPaused) return;
+                isPaused = true;
+                pauseBtn.textContent = '▶ 繼續';
+                startBtn.disabled = false;
+                startBtn.textContent = '▶ 繼續';
+                if (timerId) {
+                    clearInterval(timerId);
+                    timerId = null;
+                }
+            }
+
+            function resumeTimer() {
+                if (!isRunning || !isPaused) return;
+                isPaused = false;
+                pauseBtn.textContent = '⏸ 暫停';
+                startBtn.disabled = true;
+                startBtn.textContent = '▶ 運行';
+                if (timerId) clearInterval(timerId);
+                timerId = setInterval(tick, 1000);
+            }
+
+            function stopTimer() {
+                isRunning = false;
+                isPaused = false;
+                if (timerId) {
+                    clearInterval(timerId);
+                    timerId = null;
+                }
+                startBtn.disabled = false;
+                startBtn.textContent = '▶ 開始';
+                pauseBtn.disabled = true;
+                pauseBtn.textContent = '⏸ 暫停';
+            }
+
+            function resetTimer() {
+                stopTimer();
+                if (toastActive) {
+                    dismissToast();
+                }
+                if (mode === 'countup') {
+                    elapsedSeconds = 0;
+                } else {
+                    elapsedSeconds = 0;
+                }
+                renderTimer();
+                body.classList.remove('lit');
+            }
+
+            function triggerAlert() {
+                toastActive = true;
+                toast.classList.add('show');
+                body.classList.add('lit');
+                stopTimer();
+            }
+
+            function dismissToast() {
+                toastActive = false;
+                toast.classList.remove('show');
+                body.classList.remove('lit');
+            }
+
+            function switchMode(newMode) {
+                if (isRunning) {
+                    stopTimer();
+                }
+                if (toastActive) {
+                    dismissToast();
+                }
+                mode = newMode;
+                if (mode === 'countup') {
+                    modeUp.classList.add('active');
+                    modeDown.classList.remove('active');
+                    presetWrapper.classList.add('hidden');
+                    elapsedSeconds = 0;
+                } else {
+                    modeDown.classList.add('active');
+                    modeUp.classList.remove('active');
+                    presetWrapper.classList.remove('hidden');
+                    elapsedSeconds = 0;
+                    targetSeconds = selectedPreset * 60;
+                    customMinutes.value = selectedPreset;
+                }
+                renderTimer();
+                body.classList.remove('lit');
+                startBtn.disabled = false;
+                startBtn.textContent = '▶ 開始';
+                pauseBtn.disabled = true;
+                pauseBtn.textContent = '⏸ 暫停';
+                isRunning = false;
+                isPaused = false;
+                if (timerId) {
+                    clearInterval(timerId);
+                    timerId = null;
+                }
+            }
+
+            function setPreset(minutes) {
+                if (isRunning) {
+                    stopTimer();
+                }
+                if (toastActive) {
+                    dismissToast();
+                }
+                selectedPreset = minutes;
+                targetSeconds = minutes * 60;
+                elapsedSeconds = 0;
+                presetBtns.forEach(b => b.classList.remove('active'));
+                presetBtns.forEach(b => {
+                    if (parseInt(b.dataset.minutes) === minutes) {
+                        b.classList.add('active');
+                    }
+                });
+                customMinutes.value = minutes;
+                renderTimer();
+                body.classList.remove('lit');
+                startBtn.disabled = false;
+                startBtn.textContent = '▶ 開始';
+                pauseBtn.disabled = true;
+                pauseBtn.textContent = '⏸ 暫停';
+                isRunning = false;
+                isPaused = false;
+                if (timerId) {
+                    clearInterval(timerId);
+                    timerId = null;
+                }
+            }
+
+            function setCustomDuration() {
+                if (mode !== 'countdown') return;
+                const val = parseInt(customMinutes.value);
+                if (isNaN(val) || val <= 0) {
+                    customMinutes.value = selectedPreset;
+                    return;
+                }
+                if (isRunning) {
+                    stopTimer();
+                }
+                if (toastActive) {
+                    dismissToast();
+                }
+                selectedPreset = val;
+                targetSeconds = val * 60;
+                elapsedSeconds = 0;
+                presetBtns.forEach(b => b.classList.remove('active'));
+                customMinutes.value = val;
+                renderTimer();
+                body.classList.remove('lit');
+                startBtn.disabled = false;
+                startBtn.textContent = '▶ 開始';
+                pauseBtn.disabled = true;
+                pauseBtn.textContent = '⏸ 暫停';
+                isRunning = false;
+                isPaused = false;
+                if (timerId) {
+                    clearInterval(timerId);
+                    timerId = null;
+                }
+            }
+
+            updateClock();
+            setInterval(updateClock, 1000);
+            renderTimer();
+
+            presetBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (mode === 'countdown') {
+                        setPreset(parseInt(this.dataset.minutes));
+                    }
+                });
+            });
+
+            setCustomBtn.addEventListener('click', setCustomDuration);
+            customMinutes.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    setCustomDuration();
+                }
+            });
+
+            modeUp.addEventListener('click', function() {
+                if (mode !== 'countup') {
+                    switchMode('countup');
+                }
+            });
+
+            modeDown.addEventListener('click', function() {
+                if (mode !== 'countdown') {
+                    switchMode('countdown');
+                }
+            });
+
+            startBtn.addEventListener('click', function() {
+                if (isRunning && isPaused) {
+                    resumeTimer();
+                    return;
+                }
+                if (isRunning) return;
+                if (mode === 'countdown' && elapsedSeconds >= targetSeconds) {
+                    elapsedSeconds = 0;
+                    renderTimer();
+                }
+                startTimer();
+            });
+
+            pauseBtn.addEventListener('click', function() {
+                if (isRunning && !isPaused) {
+                    pauseTimer();
+                } else if (isRunning && isPaused) {
+                    resumeTimer();
+                }
+            });
+
+            resetBtn.addEventListener('click', function() {
+                resetTimer();
+            });
+
+            toastBtn.addEventListener('click', function() {
+                resetTimer();
+                dismissToast();
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === ' ' || e.key === 'Space') {
+                    e.preventDefault();
+                    if (toastActive) {
+                        resetTimer();
+                        dismissToast();
+                        return;
+                    }
+                    if (isRunning && !isPaused) {
+                        pauseTimer();
+                    } else if (isRunning && isPaused) {
+                        resumeTimer();
+                    } else {
+                        if (mode === 'countdown' && elapsedSeconds >= targetSeconds) {
+                            elapsedSeconds = 0;
+                            renderTimer();
+                        }
+                        startTimer();
+                    }
+                }
+                if (e.key === 'r' || e.key === 'R') {
+                    resetTimer();
+                }
+            });
+
+            if (mode === 'countup') {
+                presetWrapper.classList.add('hidden');
+            } else {
+                presetWrapper.classList.remove('hidden');
+            }
+
+        })();
+    </script>
+
+</body>
+</html>
