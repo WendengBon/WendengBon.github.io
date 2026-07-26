@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文燈 · CAD 看圖器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Noto Serif SC", "Georgia", serif;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0a0e1a;
+            background-size: cover;
+            background-position: center;
+            color: #e0e8ff;
+        }
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at 30% 40%, rgba(180, 215, 240, 0.15) 0%, rgba(10, 14, 26, 0.70) 100%);
+            z-index: -1;
+        }
+        body.dark-mode::after {
+            background: radial-gradient(ellipse at 30% 40%, rgba(10, 25, 55, 0.60) 0%, rgba(0, 5, 20, 0.85) 100%);
+        }
+
+        .main-container {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(15, 25, 50, 0.55);
+            backdrop-filter: blur(16px);
+            border: 2px solid #f5efe8;
+            border-radius: 32px;
+            padding: 20px 24px 18px;
+            box-shadow: 0 12px 48px rgba(0, 0, 30, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: background 0.5s, border-color 0.5s;
+        }
+        body.dark-mode .main-container {
+            background: rgba(5, 10, 30, 0.65);
+            border-color: #f5efe8;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            border-bottom: 1px solid rgba(245, 239, 232, 0.08);
+            padding-bottom: 10px;
+        }
+        .brand {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+        .brand h1 {
+            font-size: 22px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: #f5efe8;
+        }
+        .brand .sub {
+            font-size: 13px;
+            color: rgba(245, 239, 232, 0.40);
+            letter-spacing: 1px;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+        .toolbar .btn {
+            padding: 4px 14px;
+            border-radius: 30px;
+            border: 1px solid rgba(245, 239, 232, 0.15);
+            background: rgba(245, 239, 232, 0.04);
+            color: #e0e8ff;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.2s, border-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .toolbar .btn:hover {
+            background: rgba(245, 239, 232, 0.12);
+            border-color: rgba(245, 239, 232, 0.30);
+        }
+        .toolbar .btn.active {
+            background: rgba(180, 215, 240, 0.15);
+            border-color: rgba(180, 215, 240, 0.30);
+        }
+        .toolbar .btn-icon {
+            font-size: 18px;
+            padding: 2px 10px;
+        }
+        .toolbar .theme-btn {
+            font-size: 18px;
+            padding: 2px 12px;
+        }
+
+        .cad-body {
+            display: flex;
+            gap: 16px;
+            min-height: 500px;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 16px;
+            padding: 12px 10px;
+            border: 1px solid rgba(245, 239, 232, 0.04);
+            min-width: 60px;
+            flex-shrink: 0;
+        }
+        .sidebar .btn {
+            padding: 6px 8px;
+            border-radius: 12px;
+            border: none;
+            background: transparent;
+            color: rgba(245, 239, 232, 0.50);
+            font-size: 20px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            text-align: center;
+        }
+        .sidebar .btn:hover {
+            background: rgba(245, 239, 232, 0.06);
+            color: #f5efe8;
+        }
+        .sidebar .btn.active {
+            background: rgba(180, 215, 240, 0.12);
+            color: #8ab8ff;
+        }
+        .sidebar .separator {
+            border-top: 1px solid rgba(245, 239, 232, 0.06);
+            margin: 4px 0;
+        }
+
+        .canvas-wrap {
+            flex: 1;
+            position: relative;
+            background: rgba(0, 0, 0, 0.20);
+            border-radius: 16px;
+            border: 1px solid rgba(245, 239, 232, 0.06);
+            overflow: hidden;
+            min-height: 400px;
+        }
+        .canvas-wrap canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        .command-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 30px;
+            border: 1px solid rgba(245, 239, 232, 0.04);
+            font-size: 13px;
+            color: rgba(245, 239, 232, 0.40);
+            flex-wrap: wrap;
+        }
+        .command-bar input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #e0e8ff;
+            font-family: inherit;
+            font-size: 13px;
+            padding: 4px 8px;
+            min-width: 100px;
+        }
+        .command-bar input::placeholder {
+            color: rgba(245, 239, 232, 0.20);
+        }
+        .command-bar .status {
+            color: rgba(245, 239, 232, 0.25);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .command-bar .coords {
+            font-feature-settings: "tnum";
+            color: rgba(245, 239, 232, 0.20);
+            font-size: 12px;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 12px;
+            color: rgba(245, 239, 232, 0.20);
+            border-top: 1px solid rgba(245, 239, 232, 0.04);
+            padding-top: 10px;
+        }
+        .footer .credit a {
+            color: rgba(245, 239, 232, 0.25);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer .credit a:hover {
+            color: rgba(245, 239, 232, 0.50);
+        }
+        .footer .hint kbd {
+            display: inline-block;
+            padding: 0 6px;
+            border-radius: 4px;
+            background: rgba(245, 239, 232, 0.04);
+            border: 1px solid rgba(245, 239, 232, 0.06);
+            font-size: 11px;
+            font-family: inherit;
+            color: rgba(245, 239, 232, 0.30);
+        }
+
+        @media (max-width: 720px) {
+            .cad-body {
+                flex-direction: column;
+            }
+            .sidebar {
+                flex-direction: row;
+                flex-wrap: wrap;
+                min-width: unset;
+                padding: 8px 12px;
+                justify-content: center;
+            }
+            .sidebar .separator {
+                border-top: none;
+                border-left: 1px solid rgba(245, 239, 232, 0.06);
+                margin: 0 4px;
+            }
+            .main-container {
+                padding: 14px 12px;
+            }
+            .brand h1 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container" id="app">
+        <header class="header">
+            <div class="brand">
+                <h1>文燈 · CAD 看圖器</h1>
+                <span class="sub">✧ 輕量 · 本機</span>
+            </div>
+            <div class="toolbar">
+                <button class="btn" id="newBtn">📄 新建</button>
+                <button class="btn" id="openBtn">📂 開啟</button>
+                <input type="file" id="fileInput" accept=".json,.svg" style="display:none" />
+                <button class="btn" id="saveBtn">💾 儲存 JSON</button>
+                <button class="btn" id="exportSvgBtn">📤 匯出 SVG</button>
+                <button class="btn theme-btn" id="themeBtn">🌙</button>
+            </div>
+        </header>
+
+        <div class="cad-body">
+            <div class="sidebar" id="sidebar">
+                <button class="btn active" data-cmd="select" title="選取 (V)">🖱️</button>
+                <button class="btn" data-cmd="line" title="直線 (L)">╱</button>
+                <button class="btn" data-cmd="circle" title="圓 (C)">◯</button>
+                <button class="btn" data-cmd="rect" title="矩形 (R)">▭</button>
+                <button class="btn" data-cmd="text" title="文字 (T)">A</button>
+                <div class="separator"></div>
+                <button class="btn" data-cmd="move" title="移動 (M)">✚</button>
+                <button class="btn" data-cmd="erase" title="刪除 (E / Del)">✕</button>
+                <div class="separator"></div>
+                <button class="btn" data-cmd="zoom_in" title="放大 (+ / 滾輪)">⊕</button>
+                <button class="btn" data-cmd="zoom_out" title="縮小 (- / 滾輪)">⊖</button>
+                <button class="btn" data-cmd="zoom_extents" title="全部顯示">⊡</button>
+            </div>
+
+            <div class="canvas-wrap" id="canvasWrap">
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+
+        <div class="command-bar">
+            <span style="color:rgba(245,239,232,0.30);">⏎</span>
+            <input id="cmdInput" placeholder="輸入指令或座標 (例如 L, C, 0,0) …" autofocus />
+            <span class="status" id="statusMsg">就緒</span>
+            <span class="coords" id="coordsDisplay">🪔 0, 0</span>
+        </div>
+
+        <footer class="footer">
+            <span class="hint">
+                <kbd>L</kbd> 直線 <kbd>C</kbd> 圓 <kbd>R</kbd> 矩形 <kbd>T</kbd> 文字
+                <kbd>V</kbd> 選取 <kbd>M</kbd> 移動 <kbd>E</kbd> 刪除
+                <kbd>Esc</kbd> 取消
+            </span>
+            <span class="credit">
+                <a href="https://wendengbon.github.io/" target="_blank">文燈 · 官方</a>
+                &nbsp;·&nbsp; 一盞油燈 · 一方書齋
+            </span>
+        </footer>
+    </div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // ---- 深淺模式 ----
+            const State = { darkMode: localStorage.getItem('wdTheme') === 'dark' };
+            const themeBtn = document.getElementById('themeBtn');
+
+            function applyTheme() {
+                document.body.classList.toggle('dark-mode', State.darkMode);
+                themeBtn.textContent = State.darkMode ? '☀️' : '🌙';
+                localStorage.setItem('wdTheme', State.darkMode ? 'dark' : 'light');
+            }
+            themeBtn.addEventListener('click', () => { State.darkMode = !State.darkMode;
+                applyTheme(); });
+            applyTheme();
+
+            // ---- 每日壁紙 ----
+            function setWallpaper() {
+                const now = new Date();
+                const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+                const images = [
+                    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80',
+                    'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1920&q=80',
+                    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80',
+                    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80',
+                    'https://images.unsplash.com/photo-1518173946687-a36f968f7f6a?w=1920&q=80',
+                    'https://images.unsplash.com/photo-1505144808419-1957a94ca61e?w=1920&q=80',
+                    'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80'
+                ];
+                document.body.style.backgroundImage = 'url("' + images[seed % images.length] + '")';
+            }
+            setWallpaper();
+
+            // ---- DOM 參考 ----
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            const wrap = document.getElementById('canvasWrap');
+            const cmdInput = document.getElementById('cmdInput');
+            const statusMsg = document.getElementById('statusMsg');
+            const coordsDisplay = document.getElementById('coordsDisplay');
+
+            // ---- 繪圖核心 ----
+            let entities = [];
+            let nextId = 1;
+            let selectedId = null;
+            let transform = { offsetX: 0, offsetY: 0, scale: 1.0 };
+
+            // 當前繪圖模式
+            let currentMode = 'select'; // select, line, circle, rect, text, move, erase
+            let tempPoints = []; // 用於繪圖過程中的臨時點
+            let isDrawing = false;
+            let dragStart = null;
+            let moveStart = null;
+            let moveEntityId = null;
+
+            // ---- 實體工廠 ----
+            function createEntity(type, params) {
+                const id = nextId++;
+                const base = { id, type, selected: false };
+                switch (type) {
+                    case 'line':
+                        return { ...base, x1: params.x1, y1: params.y1, x2: params.x2, y2: params.y2 };
+                    case 'circle':
+                        return { ...base, cx: params.cx, cy: params.cy, r: params.r };
+                    case 'rect':
+                        return { ...base, x: params.x, y: params.y, w: params.w, h: params.h };
+                    case 'text':
+                        return { ...base, x: params.x, y: params.y, text: params.text || '文字', size: params.size || 16 };
+                    default:
+                        return null;
+                }
+            }
+
+            // ---- 座標轉換 ----
+            function modelToView(mx, my) {
+                return {
+                    x: (mx - transform.offsetX) * transform.scale,
+                    y: (my - transform.offsetY) * transform.scale
+                };
+            }
+
+            function viewToModel(vx, vy) {
+                return {
+                    x: vx / transform.scale + transform.offsetX,
+                    y: vy / transform.scale + transform.offsetY
+                };
+            }
+
+            // ---- 繪製 ----
+            function draw() {
+                const rect = wrap.getBoundingClientRect();
+                canvas.width = rect.width * window.devicePixelRatio;
+                canvas.height = rect.height * window.devicePixelRatio;
+                canvas.style.width = rect.width + 'px';
+                canvas.style.height = rect.height + 'px';
+                ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+                ctx.clearRect(0, 0, rect.width, rect.height);
+
+                // 背景網格 (淺)
+                ctx.save();
+                ctx.strokeStyle = 'rgba(245,239,232,0.04)';
+                ctx.lineWidth = 0.5;
+                const step = 20 * transform.scale;
+                const w = rect.width,
+                    h = rect.height;
+                const offX = transform.offsetX * transform.scale;
+                const offY = transform.offsetY * transform.scale;
+                const startX = -offX % step;
+                const startY = -offY % step;
+                for (let x = startX; x < w; x += step) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, h);
+                    ctx.stroke();
+                }
+                for (let y = startY; y < h; y += step) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(w, y);
+                    ctx.stroke();
+                }
+                ctx.restore();
+
+                // 繪製所有實體
+                entities.forEach(entity => {
+                    const isSelected = (entity.id === selectedId);
+                    ctx.save();
+                    // 應用變換 (將模型座標轉為視口)
+                    const transformFn = (mx, my) => {
+                        return { x: (mx - transform.offsetX) * transform.scale, y: (my - transform.offsetY) * transform
+                                .scale };
+                    };
+
+                    ctx.strokeStyle = isSelected ? '#ffd866' : '#b8d4f0';
+                    ctx.fillStyle = isSelected ? 'rgba(255,216,102,0.15)' : 'rgba(180,215,240,0.05)';
+                    ctx.lineWidth = isSelected ? 2 : 1.2;
+                    ctx.setLineDash(isSelected ? [4, 4] : []);
+
+                    if (entity.type === 'line') {
+                        const p1 = transformFn(entity.x1, entity.y1);
+                        const p2 = transformFn(entity.x2, entity.y2);
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    } else if (entity.type === 'circle') {
+                        const c = transformFn(entity.cx, entity.cy);
+                        const r = entity.r * transform.scale;
+                        ctx.beginPath();
+                        ctx.arc(c.x, c.y, Math.abs(r), 0, Math.PI * 2);
+                        ctx.stroke();
+                        if (isSelected) {
+                            ctx.fillStyle = 'rgba(255,216,102,0.08)';
+                            ctx.fill();
+                        }
+                    } else if (entity.type === 'rect') {
+                        const p1 = transformFn(entity.x, entity.y);
+                        const p2 = transformFn(entity.x + entity.w, entity.y + entity.h);
+                        const x = Math.min(p1.x, p2.x),
+                            y = Math.min(p1.y, p2.y);
+                        const w = Math.abs(p1.x - p2.x),
+                            h = Math.abs(p1.y - p2.y);
+                        ctx.strokeRect(x, y, w, h);
+                        if (isSelected) {
+                            ctx.fillStyle = 'rgba(255,216,102,0.08)';
+                            ctx.fillRect(x, y, w, h);
+                        }
+                    } else if (entity.type === 'text') {
+                        const p = transformFn(entity.x, entity.y);
+                        ctx.font = (entity.size * transform.scale) + 'px "Noto Serif SC", serif';
+                        ctx.fillStyle = isSelected ? '#ffd866' : '#e0e8ff';
+                        ctx.textBaseline = 'top';
+                        ctx.fillText(entity.text, p.x, p.y);
+                    }
+                    ctx.restore();
+                });
+
+                // 繪製臨時點 / 預覽
+                if (tempPoints.length > 0 && currentMode !== 'select' && currentMode !== 'move' && currentMode !== 'erase') {
+                    ctx.save();
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeStyle = 'rgba(255,216,102,0.5)';
+                    ctx.lineWidth = 1;
+                    const pts = tempPoints.map(p => ({ x: (p.x - transform.offsetX) * transform.scale, y: (p.y - transform
+                            .offsetY) * transform.scale }));
+                    if (currentMode === 'line' && pts.length === 1) {
+                        // 畫一條從起點到滑鼠位置的線 (由滑鼠事件更新)
+                    } else if (currentMode === 'circle' && pts.length === 1) {
+                        // 顯示圓形預覽
+                    } else if (currentMode === 'rect' && pts.length === 1) {
+                        // 顯示矩形預覽
+                    }
+                    ctx.restore();
+                }
+            }
+
+            // ---- 重新繪製（觸發） ----
+            function render() {
+                draw();
+            }
+
+            // ---- 實體操作 ----
+            function addEntity(entity) {
+                entities.push(entity);
+                render();
+            }
+
+            function deleteEntity(id) {
+                const idx = entities.findIndex(e => e.id === id);
+                if (idx !== -1) {
+                    entities.splice(idx, 1);
+                    if (selectedId === id) selectedId = null;
+                    render();
+                }
+            }
+
+            function getEntityAt(mx, my, threshold) {
+                threshold = threshold || 5;
+                // 倒序遍歷，後畫的在上層
+                for (let i = entities.length - 1; i >= 0; i--) {
+                    const e = entities[i];
+                    // 轉換到視口
+                    const p = (x, y) => ({ x: (x - transform.offsetX) * transform.scale, y: (y - transform.offsetY) * transform
+                            .scale });
+                    if (e.type === 'line') {
+                        const p1 = p(e.x1, e.y1);
+                        const p2 = p(e.x2, e.y2);
+                        const dist = distanceToSegment(mx, my, p1.x, p1.y, p2.x, p2.y);
+                        if (dist < threshold) return e;
+                    } else if (e.type === 'circle') {
+                        const c = p(e.cx, e.cy);
+                        const r = e.r * transform.scale;
+                        const d = Math.hypot(mx - c.x, my - c.y);
+                        if (Math.abs(d - r) < threshold) return e;
+                    } else if (e.type === 'rect') {
+                        const p1 = p(e.x, e.y);
+                        const p2 = p(e.x + e.w, e.y + e.h);
+                        const x = Math.min(p1.x, p2.x),
+                            y = Math.min(p1.y, p2.y);
+                        const w = Math.abs(p1.x - p2.x),
+                            h = Math.abs(p1.y - p2.y);
+                        // 檢測是否在矩形邊上
+                        if (mx >= x && mx <= x + w && my >= y && my <= y + h) {
+                            // 邊緣檢測
+                            const margin = threshold;
+                            if (mx < x + margin || mx > x + w - margin || my < y + margin || my > y + h - margin) {
+                                return e;
+                            }
+                        }
+                    } else if (e.type === 'text') {
+                        const tp = p(e.x, e.y);
+                        const size = e.size * transform.scale;
+                        const w = ctx.measureText(e.text).width;
+                        if (mx >= tp.x && mx <= tp.x + w && my >= tp.y && my <= tp.y + size) {
+                            return e;
+                        }
+                    }
+                }
+                return null;
+            }
+
+            // 點到線段距離
+            function distanceToSegment(px, py, x1, y1, x2, y2) {
+                const dx = x2 - x1,
+                    dy = y2 - y1;
+                const lenSq = dx * dx + dy * dy;
+                if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+                let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+                t = Math.max(0, Math.min(1, t));
+                const cx = x1 + t * dx,
+                    cy = y1 + t * dy;
+                return Math.hypot(px - cx, py - cy);
+            }
+
+            // ---- 縮放平移 ----
+            function zoom(factor, centerX, centerY) {
+                const oldScale = transform.scale;
+                const newScale = Math.min(Math.max(oldScale * factor, 0.05), 20);
+                if (newScale === oldScale) return;
+                // 保持中心點不變
+                const cx = centerX || wrap.clientWidth / 2;
+                const cy = centerY || wrap.clientHeight / 2;
+                const mx = (cx / oldScale) + transform.offsetX;
+                const my = (cy / oldScale) + transform.offsetY;
+                transform.scale = newScale;
+                transform.offsetX = mx - (cx / newScale);
+                transform.offsetY = my - (cy / newScale);
+                render();
+            }
+
+            function pan(dx, dy) {
+                transform.offsetX -= dx / transform.scale;
+                transform.offsetY -= dy / transform.scale;
+                render();
+            }
+
+            function zoomExtents() {
+                if (entities.length === 0) {
+                    transform.offsetX = 0;
+                    transform.offsetY = 0;
+                    transform.scale = 1;
+                    render();
+                    return;
+                }
+                // 計算所有實體的邊界
+                let minX = Infinity,
+                    minY = Infinity,
+                    maxX = -Infinity,
+                    maxY = -Infinity;
+                entities.forEach(e => {
+                    if (e.type === 'line') {
+                        minX = Math.min(minX, e.x1, e.x2);
+                        maxX = Math.max(maxX, e.x1, e.x2);
+                        minY = Math.min(minY, e.y1, e.y2);
+                        maxY = Math.max(maxY, e.y1, e.y2);
+                    } else if (e.type === 'circle') {
+                        minX = Math.min(minX, e.cx - e.r);
+                        maxX = Math.max(maxX, e.cx + e.r);
+                        minY = Math.min(minY, e.cy - e.r);
+                        maxY = Math.max(maxY, e.cy + e.r);
+                    } else if (e.type === 'rect') {
+                        minX = Math.min(minX, e.x, e.x + e.w);
+                        maxX = Math.max(maxX, e.x, e.x + e.w);
+                        minY = Math.min(minY, e.y, e.y + e.h);
+                        maxY = Math.max(maxY, e.y, e.y + e.h);
+                    } else if (e.type === 'text') {
+                        minX = Math.min(minX, e.x);
+                        maxX = Math.max(maxX, e.x + e.text.length * 8);
+                        minY = Math.min(minY, e.y);
+                        maxY = Math.max(maxY, e.y + e.size);
+                    }
+                });
+                if (!isFinite(minX)) return;
+                const margin = 40;
+                const w = maxX - minX + margin * 2;
+                const h = maxY - minY + margin * 2;
+                const cw = wrap.clientWidth,
+                    ch = wrap.clientHeight;
+                const scaleX = (cw - 20) / w;
+                const scaleY = (ch - 20) / h;
+                const newScale = Math.min(scaleX, scaleY, 5);
+                transform.scale = newScale;
+                transform.offsetX = (minX + maxX) / 2 - (cw / 2) / newScale;
+                transform.offsetY = (minY + maxY) / 2 - (ch / 2) / newScale;
+                render();
+            }
+
+            // ---- 滑鼠事件 ----
+            let mouseModel = { x: 0, y: 0 };
+            let isPanning = false;
+            let panStart = null;
+
+            function getMousePos(e) {
+                const rect = wrap.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                return { x, y };
+            }
+
+            function getModelPos(e) {
+                const p = getMousePos(e);
+                return viewToModel(p.x, p.y);
+            }
+
+            // 滑鼠事件綁定
+            canvas.addEventListener('mousedown', onMouseDown);
+            canvas.addEventListener('mousemove', onMouseMove);
+            canvas.addEventListener('mouseup', onMouseUp);
+            canvas.addEventListener('wheel', onWheel);
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+            // 中鍵平移
+            canvas.addEventListener('mousedown', (e) => {
+                if (e.button === 1) {
+                    e.preventDefault();
+                    isPanning = true;
+                    panStart = { x: e.clientX, y: e.clientY };
+                }
+            });
+            document.addEventListener('mousemove', (e) => {
+                if (isPanning) {
+                    const dx = e.clientX - panStart.x;
+                    const dy = e.clientY - panStart.y;
+                    pan(dx, dy);
+                    panStart = { x: e.clientX, y: e.clientY };
+                }
+            });
+            document.addEventListener('mouseup', (e) => {
+                if (e.button === 1) isPanning = false;
+            });
+
+            function onWheel(e) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                const pos = getMousePos(e);
+                zoom(delta, pos.x, pos.y);
+            }
+
+            function onMouseDown(e) {
+                if (e.button !== 0) return;
+                const model = getModelPos(e);
+                const view = getMousePos(e);
+                // 如果當前模式是 select, move, erase
+                if (currentMode === 'select') {
+                    const entity = getEntityAt(view.x, view.y);
+                    if (entity) {
+                        selectedId = entity.id;
+                        render();
+                        setStatus(`選取: ${entity.type} #${entity.id}`);
+                        cmdInput.value = '';
+                    } else {
+                        selectedId = null;
+                        render();
+                        setStatus('取消選取');
+                    }
+                    return;
+                }
+                if (currentMode === 'erase') {
+                    const entity = getEntityAt(view.x, view.y);
+                    if (entity) {
+                        deleteEntity(entity.id);
+                        setStatus(`已刪除 #${entity.id}`);
+                    }
+                    return;
+                }
+                if (currentMode === 'move') {
+                    const entity = getEntityAt(view.x, view.y);
+                    if (entity) {
+                        moveEntityId = entity.id;
+                        moveStart = { mx: model.x, my: model.y };
+                        setStatus(`移動 #${entity.id}`);
+                    } else {
+                        setStatus('未選取物件');
+                    }
+                    return;
+                }
+                // 繪圖模式
+                if (currentMode === 'line' || currentMode === 'circle' || currentMode === 'rect' || currentMode === 'text') {
+                    if (currentMode === 'text') {
+                        const text = prompt('請輸入文字：', '文字');
+                        if (text !== null) {
+                            const ent = createEntity('text', { x: model.x, y: model.y, text: text || '文字', size: 16 });
+                            addEntity(ent);
+                            setStatus(`文字已建立`);
+                        }
+                        return;
+                    }
+                    // 線、圓、矩形
+                    if (!isDrawing) {
+                        // 第一次點擊
+                        tempPoints = [{ x: model.x, y: model.y }];
+                        isDrawing = true;
+                        setStatus('請點擊第二點 (或輸入座標)');
+                    } else {
+                        // 第二點
+                        const p1 = tempPoints[0];
+                        const p2 = { x: model.x, y: model.y };
+                        let entity = null;
+                        if (currentMode === 'line') {
+                            entity = createEntity('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y });
+                        } else if (currentMode === 'circle') {
+                            const r = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+                            entity = createEntity('circle', { cx: p1.x, cy: p1.y, r: r });
+                        } else if (currentMode === 'rect') {
+                            entity = createEntity('rect', { x: p1.x, y: p1.y, w: p2.x - p1.x, h: p2.y - p1.y });
+                        }
+                        if (entity) {
+                            addEntity(entity);
+                            setStatus(`${currentMode} 已建立`);
+                        }
+                        tempPoints = [];
+                        isDrawing = false;
+                        render();
+                    }
+                }
+            }
+
+            // 滑鼠移動時更新狀態和預覽
+            function onMouseMove(e) {
+                const view = getMousePos(e);
+                const model = viewToModel(view.x, view.y);
+                coordsDisplay.textContent = `🪔 ${model.x.toFixed(1)}, ${model.y.toFixed(1)}`;
+                // 若是繪圖模式且已有第一點，顯示預覽線
+                if (isDrawing && (currentMode === 'line' || currentMode === 'circle' || currentMode === 'rect')) {
+                    // 簡單重繪
+                    render();
+                    // 繪製預覽（臨時）
+                    ctx.save();
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeStyle = 'rgba(255,216,102,0.5)';
+                    ctx.lineWidth = 1;
+                    const p1 = tempPoints[0];
+                    const vp1 = { x: (p1.x - transform.offsetX) * transform.scale, y: (p1.y - transform.offsetY) * transform
+                            .scale };
+                    if (currentMode === 'line') {
+                        ctx.beginPath();
+                        ctx.moveTo(vp1.x, vp1.y);
+                        ctx.lineTo(view.x, view.y);
+                        ctx.stroke();
+                    } else if (currentMode === 'circle') {
+                        const r = Math.hypot(view.x - vp1.x, view.y - vp1.y);
+                        ctx.beginPath();
+                        ctx.arc(vp1.x, vp1.y, r, 0, Math.PI * 2);
+                        ctx.stroke();
+                    } else if (currentMode === 'rect') {
+                        const x = Math.min(vp1.x, view.x),
+                            y = Math.min(vp1.y, view.y);
+                        const w = Math.abs(vp1.x - view.x),
+                            h = Math.abs(vp1.y - view.y);
+                        ctx.strokeRect(x, y, w, h);
+                    }
+                    ctx.restore();
+                }
+                // 若移動模式，更新選取物件位置
+                if (moveEntityId !== null && moveStart) {
+                    const entity = entities.find(e => e.id === moveEntityId);
+                    if (entity) {
+                        const dx = model.x - moveStart.mx;
+                        const dy = model.y - moveStart.my;
+                        if (entity.type === 'line') {
+                            entity.x1 += dx;
+                            entity.y1 += dy;
+                            entity.x2 += dx;
+                            entity.y2 += dy;
+                        } else if (entity.type === 'circle') {
+                            entity.cx += dx;
+                            entity.cy += dy;
+                        } else if (entity.type === 'rect') {
+                            entity.x += dx;
+                            entity.y += dy;
+                        } else if (entity.type === 'text') {
+                            entity.x += dx;
+                            entity.y += dy;
+                        }
+                        moveStart.mx = model.x;
+                        moveStart.my = model.y;
+                        render();
+                    }
+                }
+            }
+
+            function onMouseUp(e) {
+                if (e.button !== 0) return;
+                if (moveEntityId !== null) {
+                    moveEntityId = null;
+                    moveStart = null;
+                    setStatus('移動完成');
+                }
+            }
+
+            // ---- 狀態訊息 ----
+            function setStatus(msg) {
+                statusMsg.textContent = msg;
+            }
+
+            // ---- 命令解析 ----
+            function executeCommand(cmd) {
+                cmd = cmd.trim().toLowerCase();
+                if (cmd === '') return;
+                // 座標輸入: 數字,數字
+                if (/^-?\d+\.?\d*,-?\d+\.?\d*$/.test(cmd)) {
+                    const parts = cmd.split(',');
+                    const x = parseFloat(parts[0]),
+                        y = parseFloat(parts[1]);
+                    if (!isNaN(x) && !isNaN(y)) {
+                        // 如果是繪圖模式且有第一點，則當作第二點
+                        if (isDrawing && tempPoints.length === 1) {
+                            const p1 = tempPoints[0];
+                            const p2 = { x, y };
+                            let entity = null;
+                            if (currentMode === 'line') {
+                                entity = createEntity('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y });
+                            } else if (currentMode === 'circle') {
+                                const r = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+                                entity = createEntity('circle', { cx: p1.x, cy: p1.y, r: r });
+                            } else if (currentMode === 'rect') {
+                                entity = createEntity('rect', { x: p1.x, y: p1.y, w: p2.x - p1.x, h: p2.y - p1.y });
+                            }
+                            if (entity) {
+                                addEntity(entity);
+                                setStatus(`${currentMode} 已建立`);
+                            }
+                            tempPoints = [];
+                            isDrawing = false;
+                            render();
+                            return;
+                        } else {
+                            setStatus('請先點擊第一點或切換繪圖模式');
+                            return;
+                        }
+                    }
+                }
+                // 指令
+                switch (cmd) {
+                    case 'l':
+                        setMode('line');
+                        break;
+                    case 'c':
+                        setMode('circle');
+                        break;
+                    case 'r':
+                        setMode('rect');
+                        break;
+                    case 't':
+                        setMode('text');
+                        break;
+                    case 'v':
+                        setMode('select');
+                        break;
+                    case 'm':
+                        setMode('move');
+                        break;
+                    case 'e':
+                        setMode('erase');
+                        break;
+                    case 'z':
+                        zoom(1.2, wrap.clientWidth / 2, wrap.clientHeight / 2);
+                        setStatus('放大');
+                        break;
+                    case 'z-':
+                        zoom(0.8, wrap.clientWidth / 2, wrap.clientHeight / 2);
+                        setStatus('縮小');
+                        break;
+                    case 'ze':
+                        zoomExtents();
+                        setStatus('全部顯示');
+                        break;
+                    case 'esc':
+                        setMode('select');
+                        tempPoints = [];
+                        isDrawing = false;
+                        selectedId = null;
+                        moveEntityId = null;
+                        render();
+                        setStatus('已取消');
+                        break;
+                    default:
+                        setStatus(`未知指令: ${cmd}`);
+                }
+                cmdInput.value = '';
+            }
+
+            // ---- 模式切換 ----
+            function setMode(mode) {
+                currentMode = mode;
+                // 更新側邊欄按鈕狀態
+                document.querySelectorAll('.sidebar .btn[data-cmd]').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.cmd === mode);
+                });
+                // 重置繪圖狀態
+                tempPoints = [];
+                isDrawing = false;
+                moveEntityId = null;
+                moveStart = null;
+                setStatus(`模式: ${mode}`);
+                render();
+            }
+
+            // ---- 側邊欄點擊 ----
+            document.querySelectorAll('.sidebar .btn[data-cmd]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const cmd = btn.dataset.cmd;
+                    if (cmd === 'zoom_in') {
+                        zoom(1.2, wrap.clientWidth / 2, wrap.clientHeight / 2);
+                        return;
+                    } else if (cmd === 'zoom_out') {
+                        zoom(0.8, wrap.clientWidth / 2, wrap.clientHeight / 2);
+                        return;
+                    } else if (cmd === 'zoom_extents') {
+                        zoomExtents();
+                        return;
+                    }
+                    setMode(cmd);
+                });
+            });
+
+            // ---- 命令行輸入 ----
+            cmdInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const val = cmdInput.value.trim();
+                    executeCommand(val);
+                }
+            });
+
+            // ---- 全局鍵盤快捷鍵 ----
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                const key = e.key.toLowerCase();
+                if (key === 'l') setMode('line');
+                else if (key === 'c') setMode('circle');
+                else if (key === 'r') setMode('rect');
+                else if (key === 't') setMode('text');
+                else if (key === 'v') setMode('select');
+                else if (key === 'm') setMode('move');
+                else if (key === 'e') setMode('erase');
+                else if (key === 'escape') {
+                    setMode('select');
+                    tempPoints = [];
+                    isDrawing = false;
+                    selectedId = null;
+                    moveEntityId = null;
+                    render();
+                    setStatus('已取消');
+                } else if (key === 'delete' || key === 'backspace') {
+                    if (selectedId !== null) {
+                        deleteEntity(selectedId);
+                        selectedId = null;
+                        setStatus('已刪除');
+                    }
+                } else if (key === 'z') {
+                    if (e.ctrlKey || e.metaKey) return; // 避免衝突
+                    zoom(1.2, wrap.clientWidth / 2, wrap.clientHeight / 2);
+                } else if (key === 'x') {
+                    // 重置視圖
+                    transform.offsetX = 0;
+                    transform.offsetY = 0;
+                    transform.scale = 1;
+                    render();
+                    setStatus('重置視圖');
+                }
+            });
+
+            // ---- 檔案操作 ----
+            document.getElementById('newBtn').addEventListener('click', () => {
+                if (entities.length > 0 && !confirm('新建將清除所有內容，確定嗎？')) return;
+                entities = [];
+                selectedId = null;
+                transform.offsetX = 0;
+                transform.offsetY = 0;
+                transform.scale = 1;
+                nextId = 1;
+                render();
+                setStatus('新建文件');
+            });
+
+            document.getElementById('openBtn').addEventListener('click', () => {
+                document.getElementById('fileInput').click();
+            });
+            document.getElementById('fileInput').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        if (data.entities && Array.isArray(data.entities)) {
+                            entities = data.entities;
+                            nextId = data.nextId || 1;
+                            transform = data.transform || { offsetX: 0, offsetY: 0, scale: 1 };
+                            selectedId = null;
+                            render();
+                            setStatus(`已載入 ${entities.length} 個實體`);
+                        } else {
+                            alert('無效的檔案格式');
+                        }
+                    } catch (_) {
+                        alert('讀取失敗，請確認是有效的 JSON 檔案');
+                    }
+                };
+                reader.readAsText(file);
+                e.target.value = '';
+            });
+
+            document.getElementById('saveBtn').addEventListener('click', () => {
+                const data = {
+                    entities: entities,
+                    nextId: nextId,
+                    transform: transform
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `文燈CAD_${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                URL.revokeObjectURL(a.href);
+                setStatus('已儲存 JSON');
+            });
+
+            document.getElementById('exportSvgBtn').addEventListener('click', () => {
+                // 簡單匯出 SVG (只包含繪圖內容，無變換)
+                let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-200 -200 400 400" width="800" height="800">`;
+                entities.forEach(e => {
+                    if (e.type === 'line') {
+                        svg += `<line x1="${e.x1}" y1="${-e.y1}" x2="${e.x2}" y2="${-e.y2}" stroke="#b8d4f0" stroke-width="1.5" />`;
+                    } else if (e.type === 'circle') {
+                        svg += `<circle cx="${e.cx}" cy="${-e.cy}" r="${e.r}" fill="none" stroke="#b8d4f0" stroke-width="1.5" />`;
+                    } else if (e.type === 'rect') {
+                        svg +=
+                            `<rect x="${e.x}" y="${-e.y - e.h}" width="${e.w}" height="${e.h}" fill="none" stroke="#b8d4f0" stroke-width="1.5" />`;
+                    } else if (e.type === 'text') {
+                        svg +=
+                            `<text x="${e.x}" y="${-e.y}" font-family="Georgia" font-size="${e.size}" fill="#e0e8ff">${e.text}</text>`;
+                    }
+                });
+                svg += `</svg>`;
+                const blob = new Blob([svg], { type: 'image/svg+xml' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `文燈CAD_${new Date().toISOString().slice(0,10)}.svg`;
+                a.click();
+                URL.revokeObjectURL(a.href);
+                setStatus('已匯出 SVG');
+            });
+
+            // ---- 初始化 ----
+            function init() {
+                // 加一些範例
+                if (entities.length === 0) {
+                    entities.push(createEntity('line', { x1: -80, y1: -50, x2: 80, y2: 50 }));
+                    entities.push(createEntity('circle', { cx: 0, cy: 0, r: 40 }));
+                    entities.push(createEntity('rect', { x: -60, y: -30, w: 120, h: 60 }));
+                    entities.push(createEntity('text', { x: -30, y: -10, text: '文燈 CAD', size: 20 }));
+                    nextId = 5;
+                }
+                // 設定 transform 使內容可見
+                zoomExtents();
+                setMode('select');
+                render();
+                setStatus('就緒');
+                cmdInput.focus();
+            }
+
+            // 視窗大小變化時重新繪製
+            window.addEventListener('resize', render);
+
+            init();
+
+            console.log('🪔 文燈 CAD 看圖器 已載入');
+        })();
+    </script>
+
+</body>
+</html>
