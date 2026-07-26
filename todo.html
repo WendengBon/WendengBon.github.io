@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文燈 · 清單</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Noto Serif SC", "Georgia", serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            background: #0a0e1a;
+            background-image: url('https://images.unsplash.com/photo-1518173946687-a36f968f7f6a?w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            color: #e0e8ff;
+        }
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at 30% 40%, rgba(180,215,240,0.15) 0%, rgba(10,14,26,0.75) 100%);
+            z-index: -1;
+        }
+        .card {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(15,25,50,0.55);
+            backdrop-filter: blur(16px);
+            border: 2px solid #f5efe8;
+            border-radius: 32px;
+            padding: 32px 36px 28px;
+            box-shadow: 0 12px 48px rgba(0,0,30,0.5);
+        }
+        h1 {
+            font-size: 20px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            border-bottom: 1px solid rgba(245,239,232,0.08);
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+        }
+        .input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .input-row input {
+            flex: 1;
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid rgba(245,239,232,0.10);
+            background: rgba(0,0,0,0.20);
+            color: #e0e8ff;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+        }
+        .input-row button {
+            padding: 8px 18px;
+            border-radius: 30px;
+            border: 1px solid rgba(245,239,232,0.12);
+            background: rgba(245,239,232,0.06);
+            color: #e0e8ff;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            transition: background 0.25s;
+        }
+        .input-row button:hover {
+            background: rgba(245,239,232,0.14);
+        }
+        .task-list {
+            list-style: none;
+        }
+        .task-list li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(245,239,232,0.04);
+            font-size: 14px;
+        }
+        .task-list li .check {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1px solid rgba(245,239,232,0.20);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            color: rgba(245,239,232,0.20);
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        .task-list li .check.done {
+            background: rgba(180,215,240,0.15);
+            border-color: #8ab8ff;
+            color: #8ab8ff;
+        }
+        .task-list li .del {
+            margin-left: auto;
+            color: rgba(245,239,232,0.15);
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .task-list li .del:hover {
+            color: #ff8a8a;
+        }
+        .timer {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(245,239,232,0.06);
+            text-align: center;
+            font-size: 28px;
+            font-feature-settings: "tnum";
+            letter-spacing: 4px;
+            color: #b8d4f0;
+        }
+        .timer .controls {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .timer .controls button {
+            padding: 4px 18px;
+            border-radius: 30px;
+            border: 1px solid rgba(245,239,232,0.10);
+            background: rgba(245,239,232,0.06);
+            color: #e0e8ff;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            transition: background 0.25s;
+        }
+        .timer .controls button:hover {
+            background: rgba(245,239,232,0.14);
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>❧ 文燈 · 清單</h1>
+    <div class="input-row">
+        <input id="taskInput" placeholder="新增任務 …" />
+        <button id="addTask">＋</button>
+    </div>
+    <ul class="task-list" id="taskList"></ul>
+    <div class="timer">
+        <span id="timerDisplay">25:00</span>
+        <div class="controls">
+            <button id="timerStart">▶ 開始</button>
+            <button id="timerReset">⟳ 重置</button>
+        </div>
+    </div>
+</div>
+<script>
+    let tasks = JSON.parse(localStorage.getItem('wd_tasks') || '[]');
+    let timer = 25 * 60;
+    let timerInterval = null;
+    let running = false;
+
+    const list = document.getElementById('taskList');
+    const display = document.getElementById('timerDisplay');
+
+    function render() {
+        list.innerHTML = '';
+        tasks.forEach((t, i) => {
+            const li = document.createElement('li');
+            const check = document.createElement('span');
+            check.className = 'check' + (t.done ? ' done' : '');
+            check.textContent = t.done ? '✓' : '';
+            check.addEventListener('click', () => {
+                tasks[i].done = !tasks[i].done;
+                localStorage.setItem('wd_tasks', JSON.stringify(tasks));
+                render();
+            });
+            const text = document.createElement('span');
+            text.textContent = t.text;
+            if (t.done) text.style.textDecoration = 'line-through';
+            text.style.color = t.done ? 'rgba(245,239,232,0.30)' : '';
+            const del = document.createElement('span');
+            del.className = 'del';
+            del.textContent = '✕';
+            del.addEventListener('click', () => {
+                tasks.splice(i, 1);
+                localStorage.setItem('wd_tasks', JSON.stringify(tasks));
+                render();
+            });
+            li.append(check, text, del);
+            list.appendChild(li);
+        });
+    }
+
+    document.getElementById('addTask').addEventListener('click', () => {
+        const input = document.getElementById('taskInput');
+        const text = input.value.trim();
+        if (!text) return;
+        tasks.push({ text, done: false });
+        localStorage.setItem('wd_tasks', JSON.stringify(tasks));
+        input.value = '';
+        render();
+    });
+    document.getElementById('taskInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('addTask').click();
+    });
+
+    function updateTimer() {
+        const m = Math.floor(timer / 60);
+        const s = timer % 60;
+        display.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    document.getElementById('timerStart').addEventListener('click', () => {
+        if (running) {
+            clearInterval(timerInterval);
+            running = false;
+            document.getElementById('timerStart').textContent = '▶ 繼續';
+            return;
+        }
+        if (timer <= 0) { timer = 25 * 60; updateTimer(); }
+        running = true;
+        document.getElementById('timerStart').textContent = '⏸ 暫停';
+        timerInterval = setInterval(() => {
+            timer--;
+            updateTimer();
+            if (timer <= 0) {
+                clearInterval(timerInterval);
+                running = false;
+                document.getElementById('timerStart').textContent = '▶ 開始';
+                alert('🪔 時間到！休息一下吧。');
+            }
+        }, 1000);
+    });
+
+    document.getElementById('timerReset').addEventListener('click', () => {
+        clearInterval(timerInterval);
+        running = false;
+        timer = 25 * 60;
+        updateTimer();
+        document.getElementById('timerStart').textContent = '▶ 開始';
+    });
+
+    render();
+    updateTimer();
+</script>
+</body>
+</html>
