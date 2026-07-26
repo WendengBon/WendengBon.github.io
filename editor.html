@@ -55,7 +55,6 @@
             transition: background 0.5s;
         }
 
-        /* 深色模式 */
         body.dark-mode {
             background-color: #050a1a;
         }
@@ -65,7 +64,7 @@
 
         /* ===== 主容器 ===== */
         .main-container {
-            max-width: 1200px;
+            max-width: 1100px;
             width: 100%;
             background: rgba(15, 25, 50, 0.55);
             backdrop-filter: blur(16px);
@@ -90,12 +89,12 @@
                 0 0 0 4px rgba(245, 239, 232, 0.03) inset;
         }
 
-        /* 移除原本的 ::before 裝飾符號 */
+        /* 移除裝飾符號 */
         .main-container::before {
             display: none;
         }
 
-        /* ===== 頂部標頭 ===== */
+        /* ===== 標頭 ===== */
         .header {
             display: flex;
             justify-content: space-between;
@@ -172,29 +171,15 @@
             padding: 2px 12px;
         }
 
-        /* ===== 編輯器容器（多實例） ===== */
-        .editors-container {
-            display: flex;
-            flex-direction: row;
-            gap: 12px;
-            transition: all 0.3s ease;
-            min-height: 480px;
-        }
-
-        .editor-instance {
-            flex: 1;
+        /* ===== 編輯器區域 ===== */
+        .editor-wrapper {
             display: flex;
             flex-direction: column;
             background: rgba(0, 0, 0, 0.20);
             border-radius: 16px;
             border: 1px solid rgba(245, 239, 232, 0.08);
             overflow: hidden;
-            min-width: 0;
-            transition: flex 0.3s, border-color 0.3s;
-        }
-        .editor-instance.active {
-            border-color: rgba(180, 215, 240, 0.30);
-            box-shadow: 0 0 20px rgba(60, 140, 255, 0.05);
+            transition: border-color 0.3s;
         }
 
         /* 標籤欄 */
@@ -289,11 +274,10 @@
             transform: rotate(90deg);
         }
 
-        /* 編輯器文字區 */
+        /* 編輯器文字區（可縮放） */
         .editor-textarea {
-            flex: 1;
             width: 100%;
-            min-height: 300px;
+            min-height: 400px;
             padding: 16px 20px;
             font-family: "JetBrains Mono", "Fira Code", "Menlo", "Consolas", monospace;
             font-size: 14px;
@@ -302,7 +286,7 @@
             background: transparent;
             border: none;
             outline: none;
-            resize: none;
+            resize: vertical;
             tab-size: 4;
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -318,7 +302,7 @@
             letter-spacing: 1px;
         }
 
-        /* 狀態列（每個編輯器獨立） */
+        /* 狀態列 */
         .editor-status {
             display: flex;
             justify-content: space-between;
@@ -384,17 +368,6 @@
             color: rgba(245, 239, 232, 0.60);
         }
 
-        /* ===== 分屏切換 ===== */
-        .editors-container.split {
-            flex-direction: row;
-        }
-        .editors-container.split .editor-instance {
-            flex: 1;
-        }
-        .editors-container:not(.split) .editor-instance:last-child {
-            display: none;
-        }
-
         /* ===== 響應式 ===== */
         @media (max-width: 720px) {
             body {
@@ -416,11 +389,8 @@
                 justify-content: flex-start;
                 flex-wrap: wrap;
             }
-            .editors-container.split {
-                flex-direction: column;
-            }
             .editor-textarea {
-                min-height: 200px;
+                min-height: 250px;
                 font-size: 13px;
                 padding: 12px 16px;
             }
@@ -460,7 +430,7 @@
         <header class="header">
             <div class="brand">
                 <h1>文燈 · 線上編輯器</h1>
-                <span class="sub">✧ 多標籤 · 分屏</span>
+                <span class="sub">✧ 多標籤 · 本機優先</span>
             </div>
             <div class="toolbar">
                 <label class="btn btn-primary">
@@ -468,15 +438,24 @@
                     <input type="file" id="globalFileInput" accept=".html,.htm,.txt,.css,.js,.json,.xml,.svg,.md,.py,.c,.cpp,.java,.go,.rs,.sh" multiple />
                 </label>
                 <button class="btn btn-primary" id="saveBtn">💾 儲存</button>
-                <button class="btn" id="splitBtn">⊞ 分屏</button>
                 <button class="btn" id="resetBtn">⟳ 新增標籤</button>
                 <button class="btn theme-btn" id="themeBtn">🌙</button>
             </div>
         </header>
 
-        <!-- ===== 編輯器容器 ===== -->
-        <div class="editors-container" id="editorsContainer">
-            <!-- 由 JavaScript 動態生成 -->
+        <!-- ===== 編輯器 ===== -->
+        <div class="editor-wrapper">
+            <div class="tab-bar" id="tabBar">
+                <!-- 動態生成 -->
+            </div>
+            <textarea class="editor-textarea" id="editor" placeholder="在此編輯 … 可開啟多個檔案 (標籤)"></textarea>
+            <div class="editor-status">
+                <span class="status-text">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusLabel">就緒</span>
+                </span>
+                <span class="status-time" id="statusTime">--:--:--</span>
+            </div>
         </div>
 
         <!-- ===== 底部 ===== -->
@@ -499,7 +478,7 @@
             "use strict";
 
             // ============================================================
-            // 1. 深淺模式 (與首頁一致)
+            // 1. 深淺模式
             // ============================================================
             const State = {
                 darkMode: localStorage.getItem('wdTheme') === 'dark'
@@ -520,7 +499,7 @@
             applyTheme();
 
             // ============================================================
-            // 2. 每日壁紙 (同官方)
+            // 2. 每日壁紙
             // ============================================================
             function getDailyWallpaper() {
                 const now = new Date();
@@ -546,145 +525,33 @@
             setTimeout(() => { setWallpaper(); }, msToMidnight + 1000);
 
             // ============================================================
-            // 3. 時鐘 (全局顯示於每個編輯器狀態列)
+            // 3. 時鐘
             // ============================================================
-            function updateClocks() {
+            function updateClock() {
                 const now = new Date();
                 const t = now.toTimeString().slice(0, 8);
-                document.querySelectorAll('.status-time').forEach(el => el.textContent = t);
+                document.getElementById('statusTime').textContent = t;
             }
-            setInterval(updateClocks, 1000);
-            updateClocks();
+            setInterval(updateClock, 1000);
+            updateClock();
 
             // ============================================================
-            // 4. 編輯器實例管理
+            // 4. 標籤管理
             // ============================================================
-            let editorInstances = [];
-            let instanceCounter = 0;
-            const container = document.getElementById('editorsContainer');
-            let splitMode = false;
-            let activeInstanceId = null;
+            const tabBar = document.getElementById('tabBar');
+            const editor = document.getElementById('editor');
+            const statusDot = document.getElementById('statusDot');
+            const statusLabel = document.getElementById('statusLabel');
 
-            function uid() { return 'inst-' + (++instanceCounter); }
+            let tabs = [];
+            let currentIndex = 0;
 
-            function createEditorInstance(initialContent, initialFileName) {
-                const id = uid();
-                const inst = {
-                    id: id,
-                    tabs: [],
-                    currentIndex: 0,
-                };
-
-                const div = document.createElement('div');
-                div.className = 'editor-instance';
-                div.dataset.instanceId = id;
-
-                const tabBar = document.createElement('div');
-                tabBar.className = 'tab-bar';
-                tabBar.dataset.instanceId = id;
-                div.appendChild(tabBar);
-
-                const textarea = document.createElement('textarea');
-                textarea.className = 'editor-textarea';
-                textarea.placeholder = '在此編輯 … 可開啟多個檔案 (標籤)';
-                textarea.dataset.instanceId = id;
-                div.appendChild(textarea);
-
-                const statusBar = document.createElement('div');
-                statusBar.className = 'editor-status';
-                statusBar.innerHTML = `
-                    <span class="status-text">
-                        <span class="status-dot"></span>
-                        <span class="status-label">就緒</span>
-                    </span>
-                    <span class="status-time">--:--:--</span>
-                `;
-                div.appendChild(statusBar);
-
-                container.appendChild(div);
-
-                inst.container = div;
-                inst.tabBar = tabBar;
-                inst.textarea = textarea;
-                inst.statusDot = statusBar.querySelector('.status-dot');
-                inst.statusLabel = statusBar.querySelector('.status-label');
-
-                if (initialContent !== undefined) {
-                    const name = initialFileName || '未命名';
-                    inst.tabs.push({ name: name, content: initialContent });
-                } else {
-                    inst.tabs.push({ name: '未命名', content: '' });
-                }
-                inst.currentIndex = 0;
-
-                renderTabs(inst);
-                updateEditorContent(inst);
-
-                textarea.addEventListener('input', function() {
-                    const idx = inst.currentIndex;
-                    if (inst.tabs[idx]) {
-                        inst.tabs[idx].content = textarea.value;
-                    }
-                    updateStatus(inst, '已修改', false);
-                });
-
-                div.addEventListener('mousedown', function(e) {
-                    setActiveInstance(id);
-                });
-                textarea.addEventListener('focus', function() {
-                    setActiveInstance(id);
-                });
-
-                setupInstanceDrop(textarea, inst);
-                updateStatus(inst, '就緒', true);
-
-                editorInstances.push(inst);
-                if (editorInstances.length === 1) {
-                    setActiveInstance(id);
-                }
-
-                return inst;
-            }
-
-            function setupInstanceDrop(element, inst) {
-                const dropTarget = element;
-                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
-                    dropTarget.addEventListener(evt, (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    });
-                });
-                dropTarget.addEventListener('dragover', () => {
-                    dropTarget.style.borderColor = 'rgba(180, 215, 240, 0.50)';
-                });
-                dropTarget.addEventListener('dragleave', () => {
-                    dropTarget.style.borderColor = 'transparent';
-                });
-                dropTarget.addEventListener('drop', (e) => {
-                    dropTarget.style.borderColor = 'transparent';
-                    const files = e.dataTransfer.files;
-                    if (files && files.length > 0) {
-                        for (let f of files) {
-                            const reader = new FileReader();
-                            reader.onload = function(ev) {
-                                const content = ev.target.result;
-                                const name = f.name;
-                                addTab(inst, name, content);
-                                switchTab(inst, inst.tabs.length - 1);
-                            };
-                            reader.readAsText(f, 'UTF-8');
-                        }
-                    }
-                });
-            }
-
-            function renderTabs(inst) {
-                const tabBar = inst.tabBar;
+            function renderTabs() {
                 while (tabBar.firstChild) tabBar.removeChild(tabBar.firstChild);
 
-                inst.tabs.forEach((tab, idx) => {
+                tabs.forEach((tab, idx) => {
                     const btn = document.createElement('button');
-                    btn.className = 'tab-item' + (idx === inst.currentIndex ? ' active' : '');
+                    btn.className = 'tab-item' + (idx === currentIndex ? ' active' : '');
                     btn.dataset.index = idx;
                     btn.innerHTML = `
                         <span class="tab-name">${escapeHtml(tab.name)}</span>
@@ -693,81 +560,72 @@
                     btn.addEventListener('click', function(e) {
                         if (e.target.classList.contains('tab-close')) return;
                         const index = parseInt(this.dataset.index);
-                        switchTab(inst, index);
+                        switchTab(index);
                     });
                     const closeBtn = btn.querySelector('.tab-close');
                     closeBtn.addEventListener('click', function(e) {
                         e.stopPropagation();
                         const index = parseInt(this.dataset.index);
-                        closeTab(inst, index);
+                        closeTab(index);
                     });
                     tabBar.appendChild(btn);
                 });
 
+                // 新增按鈕
                 const addBtn = document.createElement('button');
                 addBtn.className = 'tab-add-btn';
                 addBtn.textContent = '+';
                 addBtn.addEventListener('click', function() {
-                    addTab(inst, '未命名', '');
-                    switchTab(inst, inst.tabs.length - 1);
+                    addTab('未命名', '');
+                    switchTab(tabs.length - 1);
                 });
                 tabBar.appendChild(addBtn);
             }
 
-            function switchTab(inst, index) {
-                if (index < 0 || index >= inst.tabs.length) return;
-                const cur = inst.currentIndex;
-                if (inst.tabs[cur]) {
-                    inst.tabs[cur].content = inst.textarea.value;
+            function switchTab(index) {
+                if (index < 0 || index >= tabs.length) return;
+                // 保存當前內容
+                if (tabs[currentIndex]) {
+                    tabs[currentIndex].content = editor.value;
                 }
-                inst.currentIndex = index;
-                updateEditorContent(inst);
-                const items = inst.tabBar.querySelectorAll('.tab-item');
+                currentIndex = index;
+                editor.value = tabs[currentIndex].content;
+                // 更新標籤樣式
+                const items = tabBar.querySelectorAll('.tab-item');
                 items.forEach((btn, idx) => {
                     btn.classList.toggle('active', idx === index);
                 });
-                updateStatus(inst, '就緒', true);
-                inst.textarea.focus();
-                setActiveInstance(inst.id);
+                updateStatus('就緒', true);
+                editor.focus();
             }
 
-            function updateEditorContent(inst) {
-                const idx = inst.currentIndex;
-                if (inst.tabs[idx]) {
-                    inst.textarea.value = inst.tabs[idx].content;
-                } else {
-                    inst.textarea.value = '';
-                }
+            function addTab(name, content) {
+                tabs.push({ name: name || '未命名', content: content || '' });
+                renderTabs();
             }
 
-            function addTab(inst, name, content) {
-                inst.tabs.push({ name: name || '未命名', content: content || '' });
-                renderTabs(inst);
-            }
-
-            function closeTab(inst, index) {
-                if (inst.tabs.length <= 1) {
-                    inst.tabs[0] = { name: '未命名', content: '' };
-                    switchTab(inst, 0);
-                    renderTabs(inst);
+            function closeTab(index) {
+                if (tabs.length <= 1) {
+                    // 最後一個標籤不關閉，清空內容
+                    tabs[0] = { name: '未命名', content: '' };
+                    switchTab(0);
+                    renderTabs();
                     return;
                 }
-                inst.tabs.splice(index, 1);
-                if (inst.currentIndex >= inst.tabs.length) {
-                    inst.currentIndex = inst.tabs.length - 1;
-                } else if (inst.currentIndex === index) {
-                    inst.currentIndex = Math.min(index, inst.tabs.length - 1);
+                tabs.splice(index, 1);
+                if (currentIndex >= tabs.length) {
+                    currentIndex = tabs.length - 1;
+                } else if (currentIndex === index) {
+                    currentIndex = Math.min(index, tabs.length - 1);
                 }
-                renderTabs(inst);
-                updateEditorContent(inst);
-                updateStatus(inst, '就緒', true);
-                inst.textarea.focus();
+                renderTabs();
+                switchTab(currentIndex);
             }
 
-            function updateStatus(inst, text, ready) {
-                inst.statusLabel.textContent = text;
-                inst.statusDot.style.background = ready ? '#4caf50' : '#ffb74d';
-                inst.statusDot.style.opacity = ready ? '0.6' : '1';
+            function updateStatus(text, ready) {
+                statusLabel.textContent = text;
+                statusDot.style.background = ready ? '#4caf50' : '#ffb74d';
+                statusDot.style.opacity = ready ? '0.6' : '1';
             }
 
             function escapeHtml(str) {
@@ -776,98 +634,72 @@
                 return div.innerHTML;
             }
 
-            function setActiveInstance(id) {
-                activeInstanceId = id;
-                document.querySelectorAll('.editor-instance').forEach(el => {
-                    el.classList.toggle('active', el.dataset.instanceId === id);
+            // 監聽編輯器輸入
+            editor.addEventListener('input', function() {
+                if (tabs[currentIndex]) {
+                    tabs[currentIndex].content = editor.value;
+                }
+                updateStatus('已修改', false);
+            });
+
+            // ============================================================
+            // 5. 拖曳開啟檔案
+            // ============================================================
+            const dropTarget = document.querySelector('.editor-wrapper');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+                dropTarget.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                 });
-            }
-
-            function getActiveInstance() {
-                return editorInstances.find(inst => inst.id === activeInstanceId) || editorInstances[0];
-            }
-
-            // ============================================================
-            // 5. 分屏控制 (修復合屏後無編輯器問題)
-            // ============================================================
-            function toggleSplit() {
-                splitMode = !splitMode;
-                container.classList.toggle('split', splitMode);
-                document.getElementById('splitBtn').textContent = splitMode ? '⊟ 合屏' : '⊞ 分屏';
-
-                if (splitMode) {
-                    // 分屏：如果只有一個實例，建立第二個
-                    if (editorInstances.length < 2) {
-                        // 建立一個空白實例，不複製內容避免混淆
-                        const inst2 = createEditorInstance('', '新標籤');
-                        // 確保只有一個標籤且為空白
-                        inst2.tabs = [{ name: '新標籤', content: '' }];
-                        inst2.currentIndex = 0;
-                        renderTabs(inst2);
-                        updateEditorContent(inst2);
-                        updateStatus(inst2, '就緒', true);
-                        setActiveInstance(inst2.id);
-                    }
-                } else {
-                    // 合屏：移除所有額外實例，只保留第一個
-                    while (editorInstances.length > 1) {
-                        const toRemove = editorInstances[editorInstances.length - 1];
-                        toRemove.container.remove();
-                        const idx = editorInstances.indexOf(toRemove);
-                        if (idx !== -1) editorInstances.splice(idx, 1);
-                    }
-                    // 確保第一個實例存在且正常
-                    if (editorInstances.length === 0) {
-                        // 極端情況：創建一個默認實例
-                        createEditorInstance('', '未命名');
-                    } else {
-                        const inst = editorInstances[0];
-                        // 確保至少有一個標籤
-                        if (inst.tabs.length === 0) {
-                            inst.tabs.push({ name: '未命名', content: '' });
-                            inst.currentIndex = 0;
-                            renderTabs(inst);
-                            updateEditorContent(inst);
-                        } else {
-                            // 重新渲染標籤欄，確保顯示
-                            renderTabs(inst);
-                        }
-                        setActiveInstance(inst.id);
+            });
+            dropTarget.addEventListener('dragover', () => {
+                dropTarget.style.borderColor = 'rgba(180, 215, 240, 0.50)';
+            });
+            dropTarget.addEventListener('dragleave', () => {
+                dropTarget.style.borderColor = 'rgba(245, 239, 232, 0.08)';
+            });
+            dropTarget.addEventListener('drop', (e) => {
+                dropTarget.style.borderColor = 'rgba(245, 239, 232, 0.08)';
+                const files = e.dataTransfer.files;
+                if (files && files.length > 0) {
+                    for (let f of files) {
+                        const reader = new FileReader();
+                        reader.onload = function(ev) {
+                            const content = ev.target.result;
+                            const name = f.name;
+                            addTab(name, content);
+                            switchTab(tabs.length - 1);
+                        };
+                        reader.readAsText(f, 'UTF-8');
                     }
                 }
-                updateClocks();
-            }
-
-            document.getElementById('splitBtn').addEventListener('click', toggleSplit);
+            });
 
             // ============================================================
             // 6. 全局操作
             // ============================================================
-
+            // 開啟檔案 (input)
             document.getElementById('globalFileInput').addEventListener('change', function(e) {
                 const files = this.files;
                 if (!files || files.length === 0) return;
-                const inst = getActiveInstance();
                 for (let f of files) {
                     const reader = new FileReader();
                     reader.onload = function(ev) {
                         const content = ev.target.result;
                         const name = f.name;
-                        addTab(inst, name, content);
-                        switchTab(inst, inst.tabs.length - 1);
+                        addTab(name, content);
+                        switchTab(tabs.length - 1);
                     };
                     reader.readAsText(f, 'UTF-8');
                 }
                 this.value = '';
             });
 
+            // 儲存
             document.getElementById('saveBtn').addEventListener('click', function() {
-                const inst = getActiveInstance();
-                if (!inst) return;
-                const idx = inst.currentIndex;
-                const tab = inst.tabs[idx];
+                const tab = tabs[currentIndex];
                 if (!tab) return;
-                tab.content = inst.textarea.value;
+                tab.content = editor.value;
                 const content = tab.content;
                 let ext = '';
                 const name = tab.name;
@@ -890,51 +722,41 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                updateStatus(inst, '已儲存 ✓', true);
+                updateStatus('已儲存 ✓', true);
             });
 
+            // 新增標籤
             document.getElementById('resetBtn').addEventListener('click', function() {
-                const inst = getActiveInstance();
-                if (inst) {
-                    addTab(inst, '未命名', '');
-                    switchTab(inst, inst.tabs.length - 1);
-                }
+                addTab('未命名', '');
+                switchTab(tabs.length - 1);
             });
 
+            // 鍵盤快捷鍵
             document.addEventListener('keydown', function(e) {
-                const inst = getActiveInstance();
-                if (!inst) return;
                 if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                     e.preventDefault();
                     document.getElementById('saveBtn').click();
                 }
                 if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
                     e.preventDefault();
-                    const idx = inst.currentIndex;
-                    closeTab(inst, idx);
+                    closeTab(currentIndex);
                 }
             });
 
             // ============================================================
-            // 7. 初始化 (預設一個實例)
+            // 7. 初始化
             // ============================================================
             const defaultContent = `// 歡迎使用文燈線上編輯器
-// 支援多標籤、分屏、深淺模式
+// 支援多標籤、深淺模式、每日壁紙
 // 開啟檔案或拖曳至此
 
 console.log("🪔 文燈 · 線上編輯器");
-console.log("📂 多標籤, 分屏, 深淺模式");
+console.log("📂 多標籤, 深淺模式, 即時時鐘");
 `;
-            const inst1 = createEditorInstance(defaultContent, '歡迎.js');
-            setActiveInstance(inst1.id);
+            addTab('歡迎.js', defaultContent);
+            switchTab(0);
 
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.editor-instance')) return;
-                const inst = getActiveInstance();
-                if (inst) inst.textarea.focus();
-            });
-
-            console.log('🪔 文燈線上編輯器已載入 (多標籤+分屏)');
+            console.log('🪔 文燈線上編輯器已載入 (多標籤)');
         })();
     </script>
 
